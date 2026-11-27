@@ -1,0 +1,534 @@
+/** Page content, zh-Hans and en. Bodies are trusted HTML; {{BASE}} is replaced with the site origin at render time. */
+export type Lang = "zh" | "en";
+export type PageId = "home" | "privacy" | "terms" | "support" | "agents";
+
+export interface PageText {
+  title: string;
+  description: string;
+  body: string;
+}
+
+/** A picture with a WebP source and a PNG fallback. */
+function pic(src: string, alt: string, cls: string, lazy = true) {
+  return `<picture class="${cls}"><source type="image/webp" srcset="${src}.webp"><img src="${src}.png" alt="${alt}" decoding="async"${lazy ? ' loading="lazy"' : ""}></picture>`;
+}
+
+/**
+ * Apple product bezels (Apple Design Resources) shown "as is", with the app's screen in the transparent screen area.
+ * Screen areas measured on the original PNGs: iPhone 17 Pro 1350×2760, screen 1206×2622 at (72, 69);
+ * Apple Watch Series 11 46 mm 560×880, screen 416×496 at (72, 192).
+ */
+function iphone(screen: string, alt: string, lazy = true) {
+  return `<figure class="dev iphone">${pic(`/screens/${screen}`, alt, "scr", lazy)}${pic("/bezels/iphone-17-pro-silver", "", "bez", lazy)}</figure>`;
+}
+function watch(screen: string, alt: string, opts: { mark?: string; lazy?: boolean } = {}) {
+  const mark = opts.mark ? `<svg class="wmark" data-mark ${opts.mark} data-weight="1.15" viewBox="0 0 120 120" aria-hidden="true"></svg>` : "";
+  return `<figure class="dev watch"><div class="scrwrap">${pic(`/screens/${screen}`, alt, "scr", opts.lazy ?? true)}${mark}</div>${pic("/bezels/watch-s11-46-natural", "", "bez", opts.lazy ?? true)}</figure>`;
+}
+
+interface Feature { title: string; text: string; visual: string }
+interface HomeCopy {
+  title: string; description: string;
+  h1: string; sub: string; soon: string; reqLine: string;
+  heroPhoneAlt: string; heroWatchAlt: string;
+  featH: string; features: Feature[];
+  reqH: string; req: [string, string][];
+  faqH: string; faq: [string, string][];
+}
+
+/** A day on the wrist: speech segments (start, end in hours) between 07:00 and 21:00. */
+const SPEECH: [number, number][] = [[7.6, 7.8], [8.9, 9.05], [9.2, 9.55], [10.1, 10.2], [11.6, 11.75], [12.9, 13.3], [14.0, 14.1], [15.45, 15.8], [16.4, 16.5], [17.75, 17.85], [18.3, 18.55], [19.5, 19.9], [20.4, 20.5]];
+function dayTimeline(zh: boolean) {
+  const x = (h: number) => (((h - 7) / 14) * 100).toFixed(2);
+  const segs = SPEECH.map(([a, b]) => `<rect x="${x(a)}%" y="10" width="${(((b - a) / 14) * 100).toFixed(2)}%" height="28" rx="2"/>`).join("");
+  const ticks = [7, 12, 17, 21].map((h) => `<span style="left:${x(h)}%">${h}:00</span>`).join("");
+  return `<div class="viz viz-day">
+<div class="kv"><div><b>${zh ? "14 小时" : "14 h"}</b><small>${zh ? "戴在手上" : "on the wrist"}</small></div><div><b class="ink">${zh ? "2 小时 10 分" : "2 h 10 min"}</b><small>${zh ? "录下的人声" : "of speech kept"}</small></div></div>
+<svg class="track" viewBox="0 0 100 48" preserveAspectRatio="none" aria-hidden="true"><rect x="0" y="22" width="100%" height="4" rx="2" class="quiet"/><g class="speech">${segs}</g></svg>
+<div class="ticks" aria-hidden="true">${ticks}</div>
+<p class="legend"><span><i class="sw ink"></i>${zh ? "有人说话：编码、转写、存好" : "Speech: encoded, transcribed, saved"}</span><span><i class="sw quiet"></i>${zh ? "安静：不编码、不存、不上传" : "Silence: not encoded, stored or uploaded"}</span></p>
+</div>`;
+}
+
+function callStrip(zh: boolean) {
+  const phone = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6.6 3.5l2.6 3.4-1.6 2.3a12 12 0 0 0 7.2 7.2l2.3-1.6 3.4 2.6-1.4 3a3 3 0 0 1-3 1.6C9.6 21.2 2.8 14.4 2 7.9a3 3 0 0 1 1.6-3z" fill="currentColor"/></svg>';
+  const steps = zh
+    ? [["15:28", "录音", "speak"], ["15:30", "来电 · 暂停", "call"], ["15:36", "挂断", "end"], ["15:36", "自动续录", "speak"]]
+    : [["15:28", "Recording", "speak"], ["15:30", "Call · paused", "call"], ["15:36", "Hung up", "end"], ["15:36", "Resumes by itself", "speak"]];
+  const cell = ([t, label, kind]: string[]) => {
+    const glyph = kind === "speak"
+      ? `<svg class="m" data-mark data-state="speak" viewBox="0 0 120 120" aria-hidden="true"></svg>`
+      : `<span class="ph${kind === "end" ? " end" : ""}">${phone}</span>`;
+    return `<li class="${kind}">${glyph}<b>${label}</b><small>${t}</small></li>`;
+  };
+  return `<div class="viz viz-call"><ol>${steps.map(cell).join("")}</ol>
+<svg class="wave" viewBox="0 0 100 20" preserveAspectRatio="none" aria-hidden="true"><path d="M0 10 Q2 2 4 10 T8 10 T12 10 T16 10 T20 10 T24 10" class="w"/><rect x="26" y="9" width="40" height="2" class="gap"/><path d="M68 10 Q70 2 72 10 T76 10 T80 10 T84 10 T88 10 T92 10 T96 10 T100 10" class="w"/></svg>
+<p class="legend">${zh ? "通话时 watchOS 占用麦克风；挂断后不用你动手" : "watchOS holds the microphone during the call; afterwards you don't lift a finger"}</p></div>`;
+}
+
+function flow(zh: boolean) {
+  return `<div class="viz viz-flow">
+<div class="node">Apple Watch<small>${zh ? "只录有人说话的片段" : "speech-only chunks"}</small></div>
+<div class="arrow" aria-hidden="true"></div>
+<div class="node pass">${zh ? "Phemo 服务器" : "Phemo server"}<small>${zh ? "转写和总结，处理完即丢弃" : "transcribes, summarises, discards"}</small></div>
+<div class="arrow" aria-hidden="true"></div>
+<div class="node home">${zh ? "你的 iCloud" : "Your iCloud"}<small>${zh ? "录音 · 文字 · 要点 · 待办" : "audio · text · highlights · to-dos"}</small></div>
+<div class="fan"><span>iPhone</span><span>Mac · ${zh ? "你的 AI 助手" : "your AI assistant"}</span></div>
+</div>`;
+}
+
+function todosCard(zh: boolean) {
+  const items = zh
+    ? [["把修改后的合同发给张经理", "周五", "15:31"], ["和设计组确认新手引导文案", "下周一", "09:16"], ["订周六晚七点妈妈生日的餐厅", "周六", "13:05"]]
+    : [["Send the revised contract to Mr. Zhang", "Fri", "15:31"], ["Confirm onboarding copy with design", "Mon", "09:16"], ["Book a table for Mom's birthday, Sat 7 pm", "Sat", "13:05"]];
+  return `<div class="viz viz-todos"><div class="ui">
+<div class="ui-h">${zh ? "总结" : "Summary"}</div>
+<p class="ui-sum">${zh ? "合同付款条款改为 30 天，周五前发给张经理；周一 15:00 陈医生复诊。" : "Contract terms now 30 days, to Mr. Zhang by Friday; Dr. Chen on Monday at 3 pm."}</p>
+<div class="ui-h">${zh ? "待办" : "To-dos"}</div>
+${items.map(([t, d]) => `<div class="ui-todo"><i></i><div><span>${t}</span><small>${d}</small></div></div>`).join("")}
+</div></div>`;
+}
+
+function agentViz(zh: boolean) {
+  return `<div class="viz viz-agent">
+<div class="win"><div class="bar"><i></i><i></i><i></i><span>${zh ? "iCloud 云盘" : "iCloud Drive"} › Phemo › 2026 › 11</span></div>
+<div class="files"><ul><li>2026-11-24.md</li><li>2026-11-25.md</li><li class="on">2026-11-26.md</li><li>todos.md</li></ul>
+<pre>## ${zh ? "To-dos" : "To-dos"}
+- [ ] ${zh ? "把合同发给张经理 (due 11-27)" : "Contract to Mr. Zhang (due 11-27)"}
+- [ ] ${zh ? "确认新手引导文案 (due 11-30)" : "Onboarding copy (due 11-30)"}</pre></div></div>
+<div class="chat"><p class="q">${zh ? "今天我答应了谁什么？" : "What did I promise today, and to whom?"}</p>
+<p class="a">${zh ? "两件：明天之前把合同发给<b>张经理</b>；下周一前和<b>设计组</b>确认新手引导文案。<small>来自 2026-11-26.md</small>" : "Two things: the contract to <b>Mr. Zhang</b> by tomorrow, and the onboarding copy with <b>design</b> by Monday.<small>From 2026-11-26.md</small>"}</p></div>
+</div>`;
+}
+
+const HOME: Record<Lang, HomeCopy> = {
+  zh: {
+    title: "Phemo · Apple Watch 上的全天录音，只留你说过的话",
+    description: "戴上就录，表盘照常；只录人声，自动整理成文字、要点和待办，全部存在你自己的 iCloud。",
+    h1: '<span class="nb">Apple Watch</span> 上的全天录音，<br>只留你说过的话。',
+    sub: "戴上就录，表盘照常。文字、要点和待办自动整理好，全部存在你自己的 iCloud。",
+    soon: "即将上架 App Store",
+    reqLine: "Apple Watch Series 6 及更新 · iPhone iOS 17+",
+    heroPhoneAlt: "iPhone 上的 Phemo：今天的总结、要点和带时间的转写",
+    heroWatchAlt: "Apple Watch 上的 Phemo：正在录制说话，已录 2 小时 13 分",
+    featH: "它能做什么",
+    features: [
+      { title: "一键开始，表盘照常", text: "表盘上点一下 Phemo 就开始录，放下手腕仍是你的表盘。", visual: watch("watch-face-zh", "表盘上的 Phemo 复杂功能，顶部是麦克风使用标志") },
+      { title: "只录人声，撑一整天", text: "手表自己判断有没有人说话，安静时什么都不做。", visual: dayTimeline(true) },
+      { title: "来电后自动续录", text: "通话、Siri 结束后自己接着录，接不上会轻震提醒。", visual: callStrip(true) },
+      { title: "只存在你自己的 iCloud", text: "我们的服务器只做转写和总结，处理完即丢弃。", visual: flow(true) },
+      { title: "每天的要点和待办", text: "每天自动整理一遍，待办带着截止时间。", visual: todosCard(true) },
+      { title: "你的 AI 助手也能读", text: "每天一份 Markdown，放在 iCloud 云盘，助手在你授权时读取。", visual: agentViz(true) },
+    ],
+    reqH: "需要什么",
+    req: [["手表", "Apple Watch Series 6 及更新，watchOS 10+"], ["手机", "iPhone，iOS 17+"], ["iCloud", "登录 Apple 账户并打开 iCloud 云盘"], ["语言", "普通话，夹杂的常用英文也能识别"]],
+    faqH: "常见问题",
+    faq: [
+      ["会很耗电吗？", "安静时手表只在判断有没有人说话，不编码也不上传；有人说话时才处理。实际续航取决于机型、电池状况和说话多少，建议先戴一个工作日试试。"],
+      ["会录到别人吗？", "会。Phemo 录的是你身边的人声，录音时手表顶部会一直显示麦克风标志。请遵守当地法律，需要时告知对方并取得同意。"],
+      ["你们能看到我的录音吗？", "不保存。一段录音只在转写的几秒钟里经过我们的服务器（交给腾讯云语音识别），生成总结时只发送当天的文字，处理完立即丢弃。内容只存在你的 iCloud。"],
+      ["iPhone 不在身边也能用吗？", "能。录音先存在手表上，等手表能联网（通过 iPhone、Wi-Fi 或蜂窝网络）再转写并存进 iCloud。"],
+      ["怎样让 AI 助手读取？", `在 Mac 上把助手指向 iCloud 云盘里的 Phemo 文件夹即可，步骤见<a href="/agents">连接 AI 助手</a>。`],
+    ],
+  },
+  en: {
+    title: "Phemo · All-day recording on Apple Watch that keeps only what was said",
+    description: "Wear it and it records, with your watch face as usual. Speech only, turned into text, highlights and to-dos — all stored in your own iCloud.",
+    h1: 'All-day recording on <span class="nb">Apple Watch</span> <br>that keeps only what was said.',
+    sub: "Tap once and keep your watch face. Text, highlights and to-dos sort themselves out — all stored in your own iCloud.",
+    soon: "Coming to the App Store",
+    reqLine: "Apple Watch Series 6 or later · iPhone on iOS 17+",
+    heroPhoneAlt: "Phemo on iPhone: today's summary, highlights and timed transcript",
+    heroWatchAlt: "Phemo on Apple Watch: recording speech, 2 h 13 min so far",
+    featH: "What it does",
+    features: [
+      { title: "One tap, your watch face stays", text: "Tap Phemo on your watch face to start; lower your wrist and it's still your face.", visual: watch("watch-face-en", "The Phemo complication on a watch face, with the microphone indicator at the top") },
+      { title: "Speech only, all day", text: "The watch decides whether anyone is talking and does nothing in silence.", visual: dayTimeline(false) },
+      { title: "Picks up again after calls", text: "After a call or Siri it resumes on its own, and taps your wrist if it can't.", visual: callStrip(false) },
+      { title: "Stored only in your own iCloud", text: "Our server only transcribes and summarises, then discards everything.", visual: flow(false) },
+      { title: "Highlights and to-dos, daily", text: "Sorted for you every day, with due dates on the to-dos.", visual: todosCard(false) },
+      { title: "Readable by your AI assistant", text: "One Markdown file a day in iCloud Drive, read by your assistant when you allow it.", visual: agentViz(false) },
+    ],
+    reqH: "What you need",
+    req: [["Watch", "Apple Watch Series 6 or later, watchOS 10+"], ["Phone", "iPhone on iOS 17+"], ["iCloud", "Signed in, with iCloud Drive on"], ["Language", "Mandarin Chinese, including common English words"]],
+    faqH: "Questions",
+    faq: [
+      ["Does it drain the battery?", "In silence the watch only checks whether someone is talking — nothing is encoded or uploaded. Real battery life depends on the model, battery health and how much is said; try it for a working day."],
+      ["Does it record other people?", "Yes — Phemo records voices around you, and the microphone indicator shows while it does. Follow local law and tell people or get consent where required."],
+      ["Can you see my recordings?", "We don't keep them. Each chunk passes through our server only for the seconds it takes to transcribe (via Tencent Cloud speech recognition); summaries are made from the day's text; both are discarded right away. Your content lives only in your iCloud."],
+      ["Does it work without my iPhone nearby?", "Yes. Audio waits on the watch until it can get online (through the iPhone, Wi-Fi or cellular), then it is transcribed and saved to iCloud."],
+      ["How does my AI assistant read it?", `Point your assistant on the Mac at the Phemo folder in iCloud Drive — see <a href="/en/agents">Connect an AI assistant</a>.`],
+    ],
+  },
+};
+
+function home(lang: Lang): PageText {
+  const c = HOME[lang];
+  const sfx = lang === "zh" ? "zh" : "en";
+  return {
+    title: c.title,
+    description: c.description,
+    body: `<section class="hero"><div class="wrap hero-grid">
+<div class="hero-txt">
+<h1>${c.h1}</h1>
+<p class="sub">${c.sub}</p>
+<div class="actions"><span class="pill">${c.soon}</span></div>
+<p class="req-line">${c.reqLine}</p>
+</div>
+<div class="duo">${watch(`watch-recording-${sfx}`, c.heroWatchAlt, { mark: 'data-state="idle" data-cycle="idle:2.6,speak:4.2,saved:1.3"', lazy: false })}${iphone(`iphone-today-${sfx}`, c.heroPhoneAlt, false)}</div>
+</div></section>
+
+<section class="features" id="features"><div class="wrap">
+<h2>${c.featH}</h2>
+<div class="fgrid">${c.features.map((f) => `<div class="feat"><div class="vis">${f.visual}</div><h3>${f.title}</h3><p>${f.text}</p></div>`).join("")}</div>
+</div></section>
+
+<section class="more"><div class="wrap more-grid">
+<div>
+<h2>${c.reqH}</h2>
+<dl class="req">${c.req.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("")}</dl>
+</div>
+<div>
+<h2>${c.faqH}</h2>
+<div class="faq">${c.faq.map(([q, a]) => `<details><summary>${q}</summary><p>${a}</p></details>`).join("")}</div>
+</div>
+</div></section>`,
+  };
+}
+
+const UPDATED = { zh: "生效日期：2026 年 11 月 26 日", en: "Effective 26 November 2026" };
+
+function privacy(lang: Lang): PageText {
+  if (lang === "zh") {
+    return {
+      title: "隐私政策 · Phemo",
+      description: "Phemo 的录音和文字只存在你自己的 iCloud。我们的服务器只做一次性转写和总结，不保存内容。",
+      body: `<article class="doc"><div class="narrow">
+<h1>隐私政策</h1><p class="updated">${UPDATED.zh}</p>
+<p>Phemo 由 Benchyard Co., Limited（香港，下称「我们」）提供。Phemo 会录下你身边的人声，这是非常私密的数据，所以我们的设计是：<strong>你的录音、文字、要点和待办只存在你自己的设备和 iCloud 里，我们的服务器不保存任何内容。</strong>下面用平实的语言说明数据怎么流转。</p>
+
+<h2>存在你自己 iCloud 里的数据</h2>
+<div class="tablewrap"><table>
+<tr><th>数据</th><th>内容</th></tr>
+<tr><td>录音片段</td><td>Apple Watch 检测到有人说话时录下的音频（AAC，单声道 16 kHz）。安静的部分不录。可能包含你和身边其他人的声音。</td></tr>
+<tr><td>转写文字</td><td>录音转成的文字和每句话的时间</td></tr>
+<tr><td>要点和待办</td><td>根据当天文字生成的总结、要点和待办，以及你的修改</td></tr>
+<tr><td>Markdown 文件</td><td>iPhone 把每天的内容写进 iCloud 云盘的 Phemo 文件夹，方便你和你设置的 AI 助手读取</td></tr>
+</table></div>
+<p>这些数据保存在你 Apple 账户的 iCloud 中（CloudKit 私有数据库和 iCloud 云盘），由 Apple 按其 iCloud 条款存储和加密；中国大陆的 iCloud 由云上贵州运营。我们无法访问你的 iCloud。</p>
+
+<h2>经过我们服务器、但不保存的数据</h2>
+<ul>
+<li><strong>转写</strong>：手表把每段录音（通常一分钟左右）发送到我们的服务器，服务器转交腾讯云语音识别，把文字返回给手表。音频只在内存里停留这几秒，不写入磁盘。</li>
+<li><strong>总结</strong>：iPhone 把当天的转写文字（不含音频）和未完成待办发给服务器，服务器交给 Cursor 的云端 Agent 生成要点和待办，结果返回给 iPhone。结果在内存里最多保留 30 分钟等你的 iPhone 取走，取走即删除。</li>
+</ul>
+<p>服务器日志只记录时间、IP 地址、请求路径和处理时长等技术信息，不记录录音或文字内容，通常在 30 天内轮换删除。</p>
+
+<h2>我们保存的数据</h2>
+<div class="tablewrap"><table>
+<tr><th>数据</th><th>内容</th><th>用途</th></tr>
+<tr><td>账号标识</td><td>Sign in with Apple 提供的匿名用户标识。不保存你的姓名和邮箱。</td><td>登录、防止接口被滥用</td></tr>
+<tr><td>设备令牌</td><td>你的 iPhone 和手表的登录令牌（只存哈希值）</td><td>验证请求来自你的设备</td></tr>
+<tr><td>Apple 授权</td><td>Sign in with Apple 的刷新令牌</td><td>删除账号时向 Apple 撤销授权</td></tr>
+<tr><td>用量计数</td><td>每天转写的时长和生成总结的次数</td><td>限制滥用</td></tr>
+</table></div>
+<p>我们不收集位置、通讯录、健康数据，不使用广告标识符，不接入任何第三方统计或广告 SDK。</p>
+
+<h2>交给谁处理</h2>
+<ul>
+<li><strong>腾讯云语音识别</strong>（深圳市腾讯计算机系统有限公司）：每段录音交给它转成文字，适用腾讯云的数据处理条款。</li>
+<li><strong>Cursor 云端 Agent</strong>（Anysphere, Inc.，美国）：生成要点和待办时，当天的转写文字（不含音频）会交给它处理。这意味着转写文字会传输到中国大陆以外处理。</li>
+<li><strong>Apple</strong>：Sign in with Apple 登录；iCloud 存储你的数据。</li>
+<li><strong>你设置的 AI 助手</strong>：只有你自己在电脑上把助手指向 iCloud 云盘里的 Phemo 文件夹，它才能读取这些文件。它如何处理数据，适用它自己的隐私政策。</li>
+</ul>
+<p>除上述情况和法律要求外，我们不会向任何第三方提供数据，也不会出售数据。我们不会用你的录音或文字训练 AI 模型。</p>
+
+<h2>你的权利</h2>
+<ul>
+<li><strong>删除</strong>：在 iPhone 的 Phemo 中打开「设置 → 删除账号」。App 会删除你 iCloud 里的全部 Phemo 数据（录音、文字、要点、待办和云盘文件），我们会删除你的账号标识、设备令牌和用量记录，并向 Apple 撤销登录授权。你也可以在 iPhone 的「设置 → Apple 账户 → iCloud → 管理储存空间」里自行删除 Phemo 的数据。</li>
+<li><strong>停止</strong>：随时在手表上停止录音；在电脑上移除 AI 助手的配置即可停止它读取。</li>
+<li><strong>访问和导出</strong>：所有内容都在你的 iCloud 里，云盘中的 Markdown 文件可以直接复制带走。</li>
+</ul>
+
+<h2>录下他人的声音</h2>
+<p>Phemo 会录到你身边其他人说的话。请遵守所在地的法律，在需要时告知对方并取得同意，不要在法律禁止的场合使用。</p>
+
+<h2>儿童</h2>
+<p>Phemo 不面向 14 周岁以下的儿童，我们不会有意收集儿童的数据。</p>
+
+<h2>变更</h2>
+<p>本政策如有重要变更，我们会在 App 内或本页面提前告知。</p>
+
+<h2>联系我们</h2>
+<p>邮箱：<a href="mailto:support@benchyard.cn">support@benchyard.cn</a><br>Benchyard Co., Limited，香港旺角花园街 2-16 号好景商业中心 27 楼 18 室</p>
+</div></article>`,
+    };
+  }
+  return {
+    title: "Privacy Policy · Phemo",
+    description: "Phemo keeps your recordings and transcripts only in your own iCloud. Our server transcribes and summarises once and keeps no content.",
+    body: `<article class="doc"><div class="narrow">
+<h1>Privacy Policy</h1><p class="updated">${UPDATED.en}</p>
+<p>Phemo is provided by Benchyard Co., Limited, Hong Kong ("we"). Phemo records voices around you, which is very personal data, so it is designed this way: <strong>your audio, transcripts, highlights and to-dos live only on your devices and in your own iCloud; our server keeps none of it.</strong> Here is how data moves, in plain words.</p>
+
+<h2>Data in your own iCloud</h2>
+<div class="tablewrap"><table>
+<tr><th>Data</th><th>What it is</th></tr>
+<tr><td>Audio chunks</td><td>Audio your Apple Watch records while it detects speech (AAC, mono 16 kHz). Silence is not recorded. It may contain your voice and the voices of people near you.</td></tr>
+<tr><td>Transcripts</td><td>The text of the audio and the time of each sentence</td></tr>
+<tr><td>Highlights and to-dos</td><td>Summaries, highlights and to-dos made from the day's text, and your edits</td></tr>
+<tr><td>Markdown files</td><td>Your iPhone writes each day into the Phemo folder in iCloud Drive, so you and AI assistants you set up can read it</td></tr>
+</table></div>
+<p>This data is stored in your Apple Account's iCloud (CloudKit private database and iCloud Drive) and is stored and encrypted by Apple under its iCloud terms; in mainland China, iCloud is operated by GCBD (Guizhou-Cloud Big Data). We cannot access your iCloud.</p>
+
+<h2>Data that passes through our server but is not kept</h2>
+<ul>
+<li><strong>Transcription</strong>: the watch sends each audio chunk (usually about a minute) to our server, which passes it to Tencent Cloud speech recognition and returns the text to the watch. The audio stays in memory for those seconds and is never written to disk.</li>
+<li><strong>Summaries</strong>: your iPhone sends the day's transcript text (no audio) and open to-dos to our server, which asks a Cursor cloud agent for highlights and to-dos and returns them to the iPhone. The result is held in memory for at most 30 minutes until your iPhone collects it, then deleted.</li>
+</ul>
+<p>Server logs contain only technical details such as time, IP address, request path and duration — never audio or text — and normally rotate out within 30 days.</p>
+
+<h2>Data we keep</h2>
+<div class="tablewrap"><table>
+<tr><th>Data</th><th>What it is</th><th>Why</th></tr>
+<tr><td>Account identifier</td><td>The anonymous user identifier from Sign in with Apple. We do not store your name or email.</td><td>Sign-in, preventing abuse</td></tr>
+<tr><td>Device tokens</td><td>Sign-in tokens of your iPhone and watch (stored as hashes)</td><td>Checking requests come from your devices</td></tr>
+<tr><td>Apple authorisation</td><td>The Sign in with Apple refresh token</td><td>Revoking it with Apple when you delete your account</td></tr>
+<tr><td>Usage counters</td><td>Minutes transcribed and summaries made per day</td><td>Preventing abuse</td></tr>
+</table></div>
+<p>We do not collect location, contacts or health data, use no advertising identifier, and include no third-party analytics or advertising SDK.</p>
+
+<h2>Who processes it</h2>
+<ul>
+<li><strong>Tencent Cloud Automatic Speech Recognition</strong> (Shenzhen Tencent Computer Systems Co., Ltd.) transcribes each audio chunk, under Tencent Cloud's data processing terms.</li>
+<li><strong>Cursor cloud agents</strong> (Anysphere, Inc., USA) receive the day's transcript text (no audio) to produce highlights and to-dos. This means transcript text is processed outside mainland China.</li>
+<li><strong>Apple</strong>: Sign in with Apple; iCloud stores your data.</li>
+<li><strong>AI assistants you set up</strong> can read the files only if you point them at the Phemo folder in iCloud Drive on your computer. Their own privacy policies govern what they do with it.</li>
+</ul>
+<p>Apart from the above and where the law requires it, we share data with no one and never sell it. We do not train AI models on your recordings or transcripts.</p>
+
+<h2>Your choices</h2>
+<ul>
+<li><strong>Delete</strong>: in Phemo on your iPhone, open Settings → Delete account. The app deletes all Phemo data from your iCloud (audio, transcripts, highlights, to-dos and iCloud Drive files); we delete your account identifier, device tokens and usage records and revoke Sign in with Apple. You can also remove Phemo's data yourself in iPhone Settings → Apple Account → iCloud → Manage Storage.</li>
+<li><strong>Stop</strong>: stop recording on the watch at any time; remove an assistant's configuration on your computer to stop it reading.</li>
+<li><strong>Access and export</strong>: everything is in your iCloud, and the Markdown files in iCloud Drive can simply be copied.</li>
+</ul>
+
+<h2>Recording other people</h2>
+<p>Phemo records what people near you say. Follow the law where you are, tell people and get their consent where required, and don't use it where recording is prohibited.</p>
+
+<h2>Children</h2>
+<p>Phemo is not directed at children under 14 and we do not knowingly collect their data.</p>
+
+<h2>Changes</h2>
+<p>We will announce material changes to this policy in the app or on this page in advance.</p>
+
+<h2>Contact</h2>
+<p>Email: <a href="mailto:support@benchyard.cn">support@benchyard.cn</a><br>Benchyard Co., Limited, Rm 18, 27/F, Ho King Commercial Centre, 2-16 Fa Yuen Street, Mongkok, Hong Kong</p>
+</div></article>`,
+  };
+}
+
+function terms(lang: Lang): PageText {
+  if (lang === "zh") {
+    return {
+      title: "使用条款 · Phemo",
+      description: "使用 Phemo 的条款。",
+      body: `<article class="doc"><div class="narrow">
+<h1>使用条款</h1><p class="updated">${UPDATED.zh}</p>
+<p>欢迎使用 Phemo。Phemo 由 Benchyard Co., Limited（下称「我们」）提供。下载或使用 Phemo，即表示你同意本条款和<a href="/privacy">隐私政策</a>。</p>
+<h2>1. 服务内容</h2>
+<p>Phemo 在 Apple Watch 上录下人声，经我们的服务器一次性转成文字，用 AI 生成要点和待办，并把全部内容存进你自己的 iCloud；你也可以让自己的 AI 助手读取这些内容。语音识别和 AI 生成的结果可能有错误或遗漏，请勿将其作为唯一依据做出重要决定。</p>
+<h2>2. 合法使用</h2>
+<p>你对使用 Phemo 录下的内容负责。你承诺遵守所在地关于录音、隐私和个人信息保护的法律，在需要时告知被录音的人并取得同意；不在法律或场所规定禁止录音的地方使用；不将 Phemo 用于偷录、跟踪、骚扰或其他侵害他人权益的行为。</p>
+<h2>3. 你的内容</h2>
+<p>你录下的音频、文字和由此生成的总结归你所有。内容存放在你自己的 iCloud 中。你授权我们为向你提供转写和总结而临时处理、传输这些内容（包括交给隐私政策中列出的服务商处理），处理完即丢弃；我们不会把你的内容用于其他目的。</p>
+<h2>4. 账号</h2>
+<p>你使用 Sign in with Apple 登录。请妥善保管你的设备和 Apple 账户；你让 AI 助手读取 Phemo 文件，视为你的操作。你可以随时在 App 内删除账号。</p>
+<h2>5. 系统限制</h2>
+<p>Phemo 受 watchOS 的限制：通话、Siri 等会暂时中断录音；系统可能因电量、内存或更新结束 App；录音需要在 App 前台开始。我们会尽力自动恢复，但不能保证录下所有内容。</p>
+<h2>6. 服务变更与中止</h2>
+<p>我们可能更新、调整或停止部分功能。若停止整个服务，我们会提前通知；你 iCloud 里的内容仍归你所有并可继续访问。如你违反本条款，我们可以暂停或终止你的使用。</p>
+<h2>7. 免责与责任限制</h2>
+<p>在法律允许的范围内，Phemo 按「现状」提供。对于录音遗漏、识别错误、AI 生成内容不准确，或因此造成的间接损失，我们不承担责任。我们对你的赔偿总额不超过你在过去 12 个月为 Phemo 支付的费用。</p>
+<h2>8. 第三方</h2>
+<p>你使用的第三方 AI 助手由其提供方负责，适用其自身的条款和隐私政策。Apple 不是本条款的一方，不对 Phemo 负责，但有权作为第三方受益人执行本条款。</p>
+<h2>9. 适用法律</h2>
+<p>本条款适用香港特别行政区法律。因本条款产生的争议，双方应先友好协商；协商不成的，提交香港有管辖权的法院解决。</p>
+<h2>10. 联系</h2>
+<p><a href="mailto:support@benchyard.cn">support@benchyard.cn</a></p>
+</div></article>`,
+    };
+  }
+  return {
+    title: "Terms of Use · Phemo",
+    description: "Terms for using Phemo.",
+    body: `<article class="doc"><div class="narrow">
+<h1>Terms of Use</h1><p class="updated">${UPDATED.en}</p>
+<p>Welcome to Phemo, provided by Benchyard Co., Limited ("we"). By downloading or using Phemo you agree to these terms and our <a href="/en/privacy">Privacy Policy</a>.</p>
+<h2>1. The service</h2>
+<p>Phemo records speech on your Apple Watch, has it transcribed once through our server, uses AI to write highlights and to-dos, and stores everything in your own iCloud; you may also let your own AI assistants read it. Transcripts and AI output can contain mistakes or omissions — don't rely on them alone for important decisions.</p>
+<h2>2. Lawful use</h2>
+<p>You are responsible for what you record with Phemo. You agree to follow the recording, privacy and data-protection laws that apply to you, to tell people and obtain their consent where required, not to use Phemo where recording is prohibited by law or by the venue, and not to use it for covert recording, stalking, harassment or anything that harms others.</p>
+<h2>3. Your content</h2>
+<p>The audio you record, its transcripts and the summaries made from them belong to you. They are stored in your own iCloud. You allow us to process and transmit them temporarily to transcribe and summarise them for you, including through the providers listed in the Privacy Policy, and to discard them afterwards. We use them for nothing else.</p>
+<h2>4. Your account</h2>
+<p>You sign in with Sign in with Apple. Keep your devices and Apple Account safe; letting an AI assistant read your Phemo files counts as your own action. You can delete your account in the app at any time.</p>
+<h2>5. System limits</h2>
+<p>Phemo works within watchOS limits: calls and Siri interrupt recording for a while, the system may end the app for battery, memory or updates, and recording has to be started from the app. We resume automatically where we can but cannot guarantee that everything is recorded.</p>
+<h2>6. Changes and termination</h2>
+<p>We may update, change or remove features. If we shut down the whole service we will tell you in advance; what is in your iCloud stays yours and remains accessible. We may suspend or end your use if you break these terms.</p>
+<h2>7. Disclaimers and liability</h2>
+<p>To the extent the law allows, Phemo is provided "as is". We are not liable for missed recordings, transcription errors, inaccurate AI output or indirect losses arising from them. Our total liability to you is limited to what you paid for Phemo in the previous 12 months.</p>
+<h2>8. Third parties</h2>
+<p>Third-party AI assistants you use are the responsibility of their providers and governed by their own terms and policies. Apple is not a party to these terms and is not responsible for Phemo, but may enforce these terms as a third-party beneficiary.</p>
+<h2>9. Governing law</h2>
+<p>These terms are governed by the laws of the Hong Kong SAR. Disputes are first to be settled by good-faith negotiation, failing which the competent courts of Hong Kong decide.</p>
+<h2>10. Contact</h2>
+<p><a href="mailto:support@benchyard.cn">support@benchyard.cn</a></p>
+</div></article>`,
+  };
+}
+
+function qa(q: string, a: string) {
+  return `<details><summary>${q}</summary><p>${a}</p></details>`;
+}
+
+function support(lang: Lang): PageText {
+  if (lang === "zh") {
+    return {
+      title: "帮助与支持 · Phemo",
+      description: "Phemo 常见问题与联系方式。",
+      body: `<article class="doc"><div class="narrow">
+<h1>帮助与支持</h1><p class="updated">找不到答案？写信给 <a href="mailto:support@benchyard.cn">support@benchyard.cn</a>，附上手表型号、watchOS 版本和问题发生的大致时间。</p>
+<h2>常见问题</h2>
+${qa("支持哪些设备？", "Apple Watch Series 6 及更新机型（含 SE 第二代、Ultra），watchOS 10 或更新；配对的 iPhone 需 iOS 17 或更新。")}
+${qa("怎样最快开始录音？", "长按表盘 → 编辑 → 复杂功能，加入 Phemo。之后点一下表盘上的 Phemo 就会打开并开始录音，放下手腕即可。")}
+${qa("录音时可以回到表盘吗？", "可以。开始录音后按数码表冠或放下手腕，录音会在后台继续，屏幕顶部会显示麦克风标志。")}
+${qa("来电话时会怎样？", "通话、Siri 等会暂时占用麦克风，录音会中断（watchOS 不允许 App 录通话内容）。结束后 Phemo 会自动恢复；如果系统不允许恢复，手表会轻震并发通知，点一下即可继续。")}
+${qa("续航怎么样？", "Phemo 只在有人说话时编码和存储，并分段在后台上传，以减少耗电。续航取决于机型、电池健康和说话多少；建议先在一个工作日里试用，观察耗电情况。")}
+${qa("不在 iPhone 旁边或没网时会丢吗？", "不会立刻丢。录音片段先保存在手表上，等手表能通过 iPhone、Wi-Fi 或蜂窝网络联网时再转写并存进你的 iCloud。手表存储有限，长时间离线时请留意。")}
+${qa("数据存在哪里？", "全部存在你自己的 iCloud（需要登录 Apple 账户并打开 iCloud 云盘）。我们的服务器只做转写和总结，处理完立即丢弃。详见<a href=\"/privacy\">隐私政策</a>。")}
+${qa("能识别哪些语言？", "目前针对普通话优化，夹杂的常见英文词也能识别。更多语言在计划中。")}
+${qa("要点和待办什么时候出现？", "转写通常在录完一段后几秒内完成。当天的要点和待办由 iPhone 生成：打开 Phemo 时会更新，iPhone 也会在后台不定时更新。")}
+${qa("怎样删除我的数据？", "在 iPhone 的 Phemo 中打开「设置 → 删除账号」，会删除你 iCloud 里的全部 Phemo 数据和我们这边的账号记录，无法恢复。")}
+${qa("怎样让我的 AI 助手读取 Phemo？", `见 <a href="/agents">连接 AI 助手</a>。`)}
+</div></article>`,
+    };
+  }
+  return {
+    title: "Help & Support · Phemo",
+    description: "Phemo FAQ and contact.",
+    body: `<article class="doc"><div class="narrow">
+<h1>Help &amp; Support</h1><p class="updated">Can't find an answer? Email <a href="mailto:support@benchyard.cn">support@benchyard.cn</a> with your watch model, watchOS version and roughly when the problem happened.</p>
+<h2>Frequently asked</h2>
+${qa("Which devices are supported?", "Apple Watch Series 6 or later (including SE 2nd generation and Ultra) on watchOS 10 or later, paired with an iPhone on iOS 17 or later.")}
+${qa("What's the fastest way to start?", "Touch and hold your watch face → Edit → Complications, and add Phemo. Then one tap on Phemo opens it and starts recording; lower your wrist.")}
+${qa("Can I go back to my watch face while recording?", "Yes. Press the Digital Crown or lower your wrist; recording continues in the background and the microphone indicator shows at the top.")}
+${qa("What happens when a call comes in?", "Calls, Siri and similar take the microphone and recording pauses (watchOS never lets apps record calls). Phemo resumes afterwards; if the system won't allow it, the watch taps your wrist and shows a notification — one tap continues.")}
+${qa("How is battery life?", "Phemo only encodes and stores audio while someone speaks and uploads it in chunks in the background to save power. Battery life depends on the model, battery health and how much is said; try it for a working day and watch the battery.")}
+${qa("What if my iPhone or the internet is away?", "Chunks are kept on the watch until it can reach the internet through the iPhone, Wi-Fi or cellular; then they are transcribed and saved to your iCloud. Watch storage is limited, so keep an eye on long offline periods.")}
+${qa("Where is my data stored?", "Only in your own iCloud (sign in to your Apple Account and turn on iCloud Drive). Our server only transcribes and summarises and discards everything right after. See the <a href=\"/en/privacy\">Privacy Policy</a>.")}
+${qa("Which languages are recognised?", "It is tuned for Mandarin Chinese today, including common English words mixed in. More languages are planned.")}
+${qa("When do highlights and to-dos appear?", "Transcripts usually arrive seconds after a chunk is recorded. The day's highlights and to-dos are made by your iPhone: they update when you open Phemo, and from time to time in the background.")}
+${qa("How do I delete my data?", "In Phemo on your iPhone, open Settings → Delete account. It deletes all Phemo data in your iCloud and your account record on our side, and cannot be undone.")}
+${qa("How do I let my AI assistant read Phemo?", `See <a href="/en/agents">Connect an AI assistant</a>.`)}
+</div></article>`,
+  };
+}
+
+const DIR = "~/Library/Mobile Documents/iCloud~ai~phemo~app/Documents/Phemo";
+const SAMPLE = `---
+date: 2026-11-26
+timezone: Asia/Shanghai
+---
+# 2026-11-26
+
+## Summary
+…
+
+## To-dos
+- [ ] 把合同发给张经理 (due 2026-11-27)
+
+## Transcript
+- 10:02 明天下午 3 点开会，记得带上季度报告。`;
+const TOOLS: [string, string, string][] = [
+  ["list_days", "有内容的日期", "Days that have content"],
+  ["get_day", "某一天的转写、要点和待办", "A day's transcript, highlights and to-dos"],
+  ["search", "按关键词在所有日子里查找", "Search every day for a phrase"],
+  ["list_todos", "全部未完成的待办", "All open to-dos"],
+  ["get_recent", "最近一段时间说过的话", "What was said recently"],
+];
+
+function agents(lang: Lang): PageText {
+  const zh = lang === "zh";
+  const esc = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  const desktop = `{
+  "mcpServers": {
+    "phemo": { "command": "phemo-mcp" }
+  }
+}`;
+  const install = "npm install -g phemo-mcp";
+  const code = "claude mcp add phemo -- phemo-mcp";
+  const skill = `mkdir -p ~/.claude/skills/phemo
+curl -fsSL {{BASE}}/skill.md -o ~/.claude/skills/phemo/SKILL.md`;
+  const tools = `<div class="tablewrap"><table><tr><th>${zh ? "工具" : "Tool"}</th><th>${zh ? "作用" : "What it does"}</th></tr>${TOOLS.map(([n, z, e]) => `<tr><td><span class="inline">${n}</span></td><td>${zh ? z : e}</td></tr>`).join("")}</table></div>`;
+  const T = zh
+    ? {
+        title: "连接 AI 助手 · Phemo", description: "Phemo 每天的内容是 iCloud 云盘里的 Markdown 文件。用 skill 或本地 MCP，让你电脑上的 AI 助手读取。",
+        h1: "连接 AI 助手", lead: "Phemo 把每天的转写、要点和待办写成 iCloud 云盘里的 Markdown 文件。你 Mac 上的 AI 助手读这些文件，就能回顾你说过的话、整理待办。数据不经过我们的服务器，也只有你配置过的助手能读。",
+        h2a: "1. 找到文件", find: "iPhone 上的 Phemo 会自动把内容同步到 <strong>iCloud 云盘 › Phemo</strong>。在登录了同一 Apple 账户的 Mac 上，它的位置是：",
+        tree: "每天一个文件，按年月分文件夹，另有一份全部未完成待办：", sample: "每个日期文件长这样：",
+        h2b: "2. 任选一种方式接入",
+        skillP: "<strong>方式一：Skill</strong>（Claude Code、Codex 等能读文件的助手）。把 Phemo 的 skill 放进助手的 skills 目录，它就知道去哪里找、怎么读：",
+        mcpP: "<strong>方式二：本地 MCP</strong>（Claude Desktop、Claude Code、Cursor 等支持 MCP 的助手）。<span class=\"inline\">phemo-mcp</span> 在你的 Mac 上运行，只读上面的文件夹。先安装（phemo-mcp 发布到 npm 之后可用）：",
+        dirP: "默认读取上面的文件夹；放在别处时加参数 <span class=\"inline\">--dir &lt;文件夹&gt;</span>。",
+        desk: "Claude Desktop：编辑 <span class=\"inline\">claude_desktop_config.json</span>", cc: "Claude Code：", cur: "Cursor：把同样的 <span class=\"inline\">mcpServers</span> 配置写进 <span class=\"inline\">~/.cursor/mcp.json</span>。",
+        h2c: "MCP 提供的工具", note: "目前是只读的：助手不能修改或删除你的内容。想停止读取，删掉上面的配置即可。只能在网页里运行的云端助手读不到这些文件，这是有意的设计。",
+      }
+    : {
+        title: "Connect an AI assistant · Phemo", description: "Phemo keeps each day as Markdown in iCloud Drive. Let the AI assistant on your Mac read it through a skill or a local MCP server.",
+        h1: "Connect an AI assistant", lead: "Phemo writes each day's transcript, highlights and to-dos as Markdown files in iCloud Drive. An AI assistant on your Mac can read them to look back at what was said or sort out to-dos. Nothing goes through our server, and only assistants you configure can read them.",
+        h2a: "1. Find the files", find: "Phemo on your iPhone keeps them in sync at <strong>iCloud Drive › Phemo</strong>. On a Mac signed in to the same Apple Account they are at:",
+        tree: "One file per day in year/month folders, plus all open to-dos:", sample: "A day file looks like this:",
+        h2b: "2. Connect, either way",
+        skillP: "<strong>Option 1: Skill</strong> (Claude Code, Codex and other assistants that read files). Put Phemo's skill into the assistant's skills folder so it knows where to look and how to read:",
+        mcpP: "<strong>Option 2: local MCP</strong> (Claude Desktop, Claude Code, Cursor and other MCP clients). <span class=\"inline\">phemo-mcp</span> runs on your Mac and only reads that folder. Install it first (available once phemo-mcp is published to npm):",
+        dirP: "It reads the folder above by default; add <span class=\"inline\">--dir &lt;folder&gt;</span> if yours is elsewhere.",
+        desk: "Claude Desktop: edit <span class=\"inline\">claude_desktop_config.json</span>", cc: "Claude Code:", cur: "Cursor: put the same <span class=\"inline\">mcpServers</span> block into <span class=\"inline\">~/.cursor/mcp.json</span>.",
+        h2c: "MCP tools", note: "Read-only for now: assistants can't change or delete your content. Remove the configuration to stop it. Assistants that only run in a web browser can't read these files — by design.",
+      };
+  return {
+    title: T.title,
+    description: T.description,
+    body: `<article class="doc"><div class="narrow">
+<h1>${T.h1}</h1><p class="updated">${T.lead}</p>
+<h2>${T.h2a}</h2>
+<p>${T.find}</p>
+<div class="code">${DIR}</div>
+<p>${T.tree}</p>
+<div class="code">Phemo/
+  2026/11/2026-11-26.md
+  todos.md
+  README.md</div>
+<p>${T.sample}</p>
+<div class="code">${esc(SAMPLE)}</div>
+<h2>${T.h2b}</h2>
+<p>${T.skillP}</p>
+<div class="code">${skill}</div>
+<p>${T.mcpP}</p>
+<div class="code">${install}</div>
+<p>${T.dirP}</p>
+<p>${T.desk}</p>
+<div class="code">${esc(desktop)}</div>
+<p>${T.cc}</p>
+<div class="code">${esc(code)}</div>
+<p>${T.cur}</p>
+<h2>${T.h2c}</h2>
+${tools}
+<div class="note">${T.note}</div>
+</div></article>`,
+  };
+}
+
+export const PAGES: Record<PageId, (lang: Lang) => PageText> = { home, privacy, terms, support, agents };

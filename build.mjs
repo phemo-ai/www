@@ -1,5 +1,5 @@
 // Builds the static site into dist/: pages from src/ (rendered for SITE_ORIGIN), public/ assets, and site.js.
-// node build.mjs            → https://phemo.ai
+// node build.mjs            → https://phemo.app
 // SITE_ORIGIN=… node build.mjs
 import { cpSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -7,7 +7,7 @@ import { build } from "esbuild";
 
 const root = path.dirname(new URL(import.meta.url).pathname);
 const dist = path.join(root, "dist");
-const origin = (process.env.SITE_ORIGIN ?? "https://phemo.ai").replace(/\/$/, "");
+const origin = (process.env.SITE_ORIGIN ?? "https://phemo.app").replace(/\/$/, "");
 
 rmSync(dist, { recursive: true, force: true });
 cpSync(path.join(root, "public"), dist, { recursive: true });

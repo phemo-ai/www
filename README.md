@@ -9,10 +9,10 @@ A tiny worker (`worker/index.ts`) runs only for `/` (picks the language from the
 
 ```sh
 npm ci
-npm run build                         # dist/ for https://phemo.ai
+npm run build                         # dist/ for https://phemo.app
 SITE_ORIGIN=http://localhost:8787 npm run dev
 ```
 
 Deploys only through `.github/workflows/deploy.yml`: push to `main` goes live, a pull request uploads a preview version.
-Needs repo secret `CLOUDFLARE_API_TOKEN` (Workers Scripts: Edit; for the custom domain also Zone: Workers Routes: Edit on phemo.ai) and repo variable `CLOUDFLARE_ACCOUNT_ID`.
-Custom domain: once the phemo.ai zone is on the account, add `"routes": [{ "pattern": "phemo.ai", "custom_domain": true }]` to `wrangler.jsonc`.
+Needs repo secret `CLOUDFLARE_API_TOKEN` (Workers Scripts: Edit; for the custom domain also Zone: Workers Routes: Edit on phemo.app) and repo variable `CLOUDFLARE_ACCOUNT_ID`.
+Custom domain: `phemo.app` (route in `wrangler.jsonc`; the zone is on the same Cloudflare account).

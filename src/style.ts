@@ -297,4 +297,28 @@ details p{padding:0 0 20px}
 .rel time{font-size:14px;color:var(--mute)}
 .rel ul{margin:0;padding-left:1.15em}
 .rel li{margin:5px 0}
+
+/* Agents directory */
+.agents-dir{max-width:1120px;margin:8px auto 0}
+.agents-dir>h2{font-size:clamp(21px,2.1vw,26px);font-weight:400;margin:24px 0 10px}
+.agents-dir>p{max-width:760px;color:var(--ink2);font-size:15.5px;line-height:1.8}
+.agents-dir .grp{margin:34px 0 14px;font-size:13px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.agent-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;align-items:start}
+.agent-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px 16px 14px;display:flex;flex-direction:column;gap:12px;scroll-margin-top:96px;transition:box-shadow .3s,border-color .3s}
+.agent-card:target{border-color:var(--ink);box-shadow:0 0 0 3px rgba(27,43,44,.12)}
+.agent-card header{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.agent-card h3{font-size:16px;font-weight:500;margin:0}
+.agent-card .form{flex:none;font-size:11.5px;color:var(--mute);border:1px solid var(--line);border-radius:999px;padding:1px 8px}
+.agent-card .pill.go{align-self:flex-start;padding:9px 16px;font-size:13.5px}
+.agent-card .how{margin:0;font-size:13.5px;line-height:1.6;color:var(--ink2)}
+.cmdline,.cfg{position:relative;display:flex;align-items:flex-start;gap:8px;background:#1B2B2C;color:#E9E4DC;border-radius:10px;padding:10px 10px 10px 12px}
+.cmdline code{flex:1;min-width:0;font:12.5px/1.6 var(--mono);white-space:pre-wrap;overflow-wrap:break-word}
+.cfg pre{flex:1;min-width:0;margin:0;font:12px/1.55 var(--mono);white-space:pre-wrap;overflow-wrap:break-word}
+.copy{flex:none;border:1px solid #4A5856;background:transparent;color:#E9E4DC;border-radius:7px;padding:3px 9px;font:inherit;font-size:12px;cursor:pointer}
+.copy.done{background:#E9E4DC;color:#1B2B2C}
+.agent-card details summary{font-size:12.5px;color:var(--mute);padding:2px 0 8px;cursor:pointer}
+.agent-card details summary::after{display:none}
+.agent-card details p{padding:0}
+.agents-dir .fine{margin-top:22px;font-size:13px;color:var(--mute)}
+.doc.wide .agents-dir{padding:0}
 `;

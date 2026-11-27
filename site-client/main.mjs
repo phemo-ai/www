@@ -164,3 +164,19 @@ if (stage) {
     chainEl.querySelector("[data-replay]")?.addEventListener("click", () => play());
   }
 }
+
+/* Copy buttons (agents page): copy the command or config, then confirm for a moment. */
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest?.("[data-copy]");
+  if (!b) return;
+  const label = b.textContent;
+  try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = document.documentElement.lang.startsWith("zh") ? "已复制" : "Copied"; b.classList.add("done"); }
+  catch { b.textContent = "⌘C"; }
+  setTimeout(() => { b.textContent = label; b.classList.remove("done"); }, 1600);
+});
+
+/* Opened from the app (Handoff / AirDrop) as /agents#<id>: land on that card once fonts and layout settle. */
+if (location.hash.length > 1) {
+  const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+  if (target) (document.fonts?.ready ?? Promise.resolve()).then(() => target.scrollIntoView({ block: "start" }));
+}

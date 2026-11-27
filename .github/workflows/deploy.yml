@@ -20,6 +20,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      # Claude Desktop extension from the published @phemo/mcp (skipped until it is on npm).
+      - run: node scripts/mcpb.mjs
       # Pull requests get a preview version (not live); main goes live.
       - name: Deploy
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository

@@ -1,4 +1,5 @@
 /** Page content, zh-Hans and en. Bodies are trusted HTML; {{BASE}} is replaced with the site origin at render time. */
+import { agentsDirectory } from "./agents";
 import { CHANGELOG, chain, changelogBody, liveWatch } from "./live";
 export type Lang = "zh" | "en";
 export type PageId = "home" | "privacy" | "terms" | "support" | "agents" | "changelog";
@@ -441,46 +442,30 @@ const TOOLS: [string, string, string][] = [
 function agents(lang: Lang): PageText {
   const zh = lang === "zh";
   const esc = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;");
-  const desktop = `{
-  "mcpServers": {
-    "phemo": { "command": "phemo-mcp" }
-  }
-}`;
-  const install = "npm install -g phemo-mcp";
-  const code = "claude mcp add phemo -- phemo-mcp";
-  const skill = `mkdir -p ~/.claude/skills/phemo
-curl -fsSL {{BASE}}/skill.md -o ~/.claude/skills/phemo/SKILL.md`;
   const tools = `<div class="tablewrap"><table><tr><th>${zh ? "工具" : "Tool"}</th><th>${zh ? "作用" : "What it does"}</th></tr>${TOOLS.map(([n, z, e]) => `<tr><td><span class="inline">${n}</span></td><td>${zh ? z : e}</td></tr>`).join("")}</table></div>`;
   const T = zh
     ? {
-        title: "连接 AI 助手 · Phemo", description: "Phemo 每天的内容是 iCloud 云盘里的 Markdown 文件。用 skill 或本地 MCP，让你电脑上的 AI 助手读取。",
-        h1: "连接 AI 助手", lead: "Phemo 把每天的转写、要点和待办写成 iCloud 云盘里的 Markdown 文件。你 Mac 上的 AI 助手读这些文件，就能回顾你说过的话、整理待办。数据不经过我们的服务器，也只有你配置过的助手能读。",
-        h2a: "1. 找到文件", find: "iPhone 上的 Phemo 会自动把内容同步到 <strong>iCloud 云盘 › Phemo</strong>。在登录了同一 Apple 账户的 Mac 上，它的位置是：",
+        title: "连接 AI 助手 · Phemo", description: "一键把 Claude Code、Codex、Cursor、WorkBuddy、Trae 等 agent 连上你在 iCloud 云盘里的 Phemo 笔记。",
+        h1: "连接 AI 助手", lead: "Phemo 把每天的转写、要点和待办写成你 iCloud 云盘里的 Markdown 文件。连上之后，你 Mac 上的 agent 就能回顾你说过的话、帮你跟进待办。数据不经过我们，只有你连接的 agent 能读。",
+        h2a: "你的文件", find: "iPhone 上的 Phemo 会把内容同步到 <strong>iCloud 云盘 › Phemo</strong>。在登录了同一 Apple 账户的 Mac 上，它的位置是：",
         tree: "每天一个文件，按年月分文件夹，另有一份全部未完成待办：", sample: "每个日期文件长这样：",
-        h2b: "2. 任选一种方式接入",
-        skillP: "<strong>方式一：Skill</strong>（Claude Code、Codex 等能读文件的助手）。把 Phemo 的 skill 放进助手的 skills 目录，它就知道去哪里找、怎么读：",
-        mcpP: "<strong>方式二：本地 MCP</strong>（Claude Desktop、Claude Code、Cursor 等支持 MCP 的助手）。<span class=\"inline\">phemo-mcp</span> 在你的 Mac 上运行，只读上面的文件夹。先安装（phemo-mcp 发布到 npm 之后可用）：",
-        dirP: "默认读取上面的文件夹；放在别处时加参数 <span class=\"inline\">--dir &lt;文件夹&gt;</span>。",
-        desk: "Claude Desktop：编辑 <span class=\"inline\">claude_desktop_config.json</span>", cc: "Claude Code：", cur: "Cursor：把同样的 <span class=\"inline\">mcpServers</span> 配置写进 <span class=\"inline\">~/.cursor/mcp.json</span>。",
-        h2c: "MCP 提供的工具", note: "目前是只读的：助手不能修改或删除你的内容。想停止读取，删掉上面的配置即可。只能在网页里运行的云端助手读不到这些文件，这是有意的设计。",
+        h2c: "agent 能用的工具", note: "只读：agent 不能修改或删除你的内容。想停止读取，在 agent 里移除 phemo 即可。",
       }
     : {
-        title: "Connect an AI assistant · Phemo", description: "Phemo keeps each day as Markdown in iCloud Drive. Let the AI assistant on your Mac read it through a skill or a local MCP server.",
-        h1: "Connect an AI assistant", lead: "Phemo writes each day's transcript, highlights and to-dos as Markdown files in iCloud Drive. An AI assistant on your Mac can read them to look back at what was said or sort out to-dos. Nothing goes through our server, and only assistants you configure can read them.",
-        h2a: "1. Find the files", find: "Phemo on your iPhone keeps them in sync at <strong>iCloud Drive › Phemo</strong>. On a Mac signed in to the same Apple Account they are at:",
+        title: "Connect an AI assistant · Phemo", description: "Connect Claude Code, Codex, Cursor, WorkBuddy, Trae and other agents to your Phemo notes in iCloud Drive in one step.",
+        h1: "Connect an AI assistant", lead: "Phemo writes each day's transcript, highlights and to-dos as Markdown files in your iCloud Drive. Once connected, the agent on your Mac can look back at what was said and follow up on to-dos. Nothing goes through us, and only agents you connect can read them.",
+        h2a: "Your files", find: "Phemo on your iPhone keeps them in sync at <strong>iCloud Drive › Phemo</strong>. On a Mac signed in to the same Apple Account they are at:",
         tree: "One file per day in year/month folders, plus all open to-dos:", sample: "A day file looks like this:",
-        h2b: "2. Connect, either way",
-        skillP: "<strong>Option 1: Skill</strong> (Claude Code, Codex and other assistants that read files). Put Phemo's skill into the assistant's skills folder so it knows where to look and how to read:",
-        mcpP: "<strong>Option 2: local MCP</strong> (Claude Desktop, Claude Code, Cursor and other MCP clients). <span class=\"inline\">phemo-mcp</span> runs on your Mac and only reads that folder. Install it first (available once phemo-mcp is published to npm):",
-        dirP: "It reads the folder above by default; add <span class=\"inline\">--dir &lt;folder&gt;</span> if yours is elsewhere.",
-        desk: "Claude Desktop: edit <span class=\"inline\">claude_desktop_config.json</span>", cc: "Claude Code:", cur: "Cursor: put the same <span class=\"inline\">mcpServers</span> block into <span class=\"inline\">~/.cursor/mcp.json</span>.",
-        h2c: "MCP tools", note: "Read-only for now: assistants can't change or delete your content. Remove the configuration to stop it. Assistants that only run in a web browser can't read these files — by design.",
+        h2c: "Tools your agent gets", note: "Read-only: agents can't change or delete your content. Remove phemo from the agent to stop it.",
       };
   return {
     title: T.title,
     description: T.description,
-    body: `<article class="doc"><div class="narrow">
+    body: `<article class="doc wide"><div class="narrow">
 <h1>${T.h1}</h1><p class="updated">${T.lead}</p>
+</div>
+${agentsDirectory(lang)}
+<div class="narrow">
 <h2>${T.h2a}</h2>
 <p>${T.find}</p>
 <div class="code">${DIR}</div>
@@ -491,17 +476,6 @@ curl -fsSL {{BASE}}/skill.md -o ~/.claude/skills/phemo/SKILL.md`;
   README.md</div>
 <p>${T.sample}</p>
 <div class="code">${esc(SAMPLE)}</div>
-<h2>${T.h2b}</h2>
-<p>${T.skillP}</p>
-<div class="code">${skill}</div>
-<p>${T.mcpP}</p>
-<div class="code">${install}</div>
-<p>${T.dirP}</p>
-<p>${T.desk}</p>
-<div class="code">${esc(desktop)}</div>
-<p>${T.cc}</p>
-<div class="code">${esc(code)}</div>
-<p>${T.cur}</p>
 <h2>${T.h2c}</h2>
 ${tools}
 <div class="note">${T.note}</div>

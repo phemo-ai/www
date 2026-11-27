@@ -227,11 +227,11 @@ function privacy(lang: Lang): PageText {
 <p>你也可以在设置里填写自己的 AI 服务（例如 OpenAI、Anthropic、阿里云通义千问、火山引擎豆包，或你自己运行的模型）的地址和 API Key。这样设置后，生成要点、待办和每日总结时，<strong>你的 iPhone 会把当天的转写文字（不含音频）直接发给这个服务</strong>，不经过我们。它如何处理数据、是否传到境外，取决于你选的服务，适用它自己的条款和隐私政策。API Key 只保存在你设备的钥匙串里。</p>
 
 <h2>我们收集的数据</h2>
-<p>无。Phemo 不需要注册账号，不收集位置、通讯录或健康数据，不使用广告标识符，不接入任何第三方统计或广告 SDK。购买 Pro 由 Apple 处理，我们收不到你的付款信息。如果你给我们写信，我们只用你提供的信息回复你。</p>
+<p>无。Phemo 不需要注册账号，不收集位置、通讯录或健康数据，不使用广告标识符，不接入任何第三方统计或广告 SDK。如果你给我们写信，我们只用你提供的信息回复你。</p>
 
 <h2>其他会接触数据的一方</h2>
 <ul>
-<li><strong>Apple</strong>：iCloud 存储你的数据；语音识别和 Apple 智能在你的设备上运行；App Store 处理购买。</li>
+<li><strong>Apple</strong>：iCloud 存储你的数据；语音识别和 Apple 智能在你的设备上运行。</li>
 <li><strong>你选择的 AI 服务</strong>：见上文。</li>
 <li><strong>你设置的 AI 助手</strong>：只有你自己在电脑上把助手指向 iCloud 云盘里的 Phemo 文件夹，它才能读取这些文件。它如何处理数据，适用它自己的隐私政策。</li>
 </ul>
@@ -285,11 +285,11 @@ function privacy(lang: Lang): PageText {
 <p>You can also enter your own AI provider (for example OpenAI, Anthropic, Alibaba Cloud Qwen, Volcano Engine Doubao, or a model you run yourself) with its address and API key. Then, for highlights, to-dos and daily summaries, <strong>your iPhone sends the day's transcript text (no audio) straight to that provider</strong>, never through us. What it does with the text, and where it processes it, depends on the provider you chose and is governed by its own terms and privacy policy. API keys stay in your device's keychain.</p>
 
 <h2>Data we collect</h2>
-<p>None. Phemo needs no account, collects no location, contacts or health data, uses no advertising identifier and includes no third-party analytics or advertising SDK. Apple handles Pro purchases; we never receive your payment details. If you email us, we use what you send only to reply.</p>
+<p>None. Phemo needs no account, collects no location, contacts or health data, uses no advertising identifier and includes no third-party analytics or advertising SDK. If you email us, we use what you send only to reply.</p>
 
 <h2>Others who handle data</h2>
 <ul>
-<li><strong>Apple</strong>: iCloud stores your data; speech recognition and Apple Intelligence run on your devices; the App Store handles purchases.</li>
+<li><strong>Apple</strong>: iCloud stores your data; speech recognition and Apple Intelligence run on your devices.</li>
 <li><strong>AI providers you choose</strong>: see above.</li>
 <li><strong>AI assistants you set up</strong> can read the files only if you point them at the Phemo folder in iCloud Drive on your computer. Their own privacy policies govern what they do with it.</li>
 </ul>
@@ -331,14 +331,14 @@ function terms(lang: Lang): PageText {
 <p>你对使用 Phemo 录下的内容负责。你承诺遵守所在地关于录音、隐私和个人信息保护的法律，在需要时告知被录音的人并取得同意；不在法律或场所规定禁止录音的地方使用；不将 Phemo 用于偷录、跟踪、骚扰或其他侵害他人权益的行为。</p>
 <h2>3. 你的内容</h2>
 <p>你录下的音频、文字和由此生成的总结归你所有。内容存放在你自己的设备和 iCloud 中，我们不接触也不处理你的内容。你在设置里填写的 AI 服务由你选择，你的 iPhone 直接把文字发给它，适用它自己的条款。</p>
-<h2>4. 设备、账户与购买</h2>
-<p>Phemo 不需要注册账号。请妥善保管你的设备和 Apple 账户；你让 AI 助手读取 Phemo 文件、或在设置里填写 AI 服务的 Key，视为你的操作，相关费用由你和该服务商结算。Pro 通过 App Store 购买，退款按 Apple 的规则处理。</p>
+<h2>4. 设备与账户</h2>
+<p>Phemo 不需要注册账号。请妥善保管你的设备和 Apple 账户；你让 AI 助手读取 Phemo 文件、或在设置里填写 AI 服务的 Key，视为你的操作，相关费用由你和该服务商结算。Phemo 目前免费提供。</p>
 <h2>5. 系统限制</h2>
 <p>Phemo 受 watchOS 的限制：通话、Siri 等会暂时中断录音；系统可能因电量、内存或更新结束 App；录音需要在 App 前台开始。我们会尽力自动恢复，但不能保证录下所有内容。</p>
 <h2>6. 服务变更与中止</h2>
 <p>我们可能更新、调整或停止部分功能。若停止整个服务，我们会提前通知；你 iCloud 里的内容仍归你所有并可继续访问。如你违反本条款，我们可以暂停或终止你的使用。</p>
 <h2>7. 免责与责任限制</h2>
-<p>在法律允许的范围内，Phemo 按「现状」提供。对于录音遗漏、识别错误、AI 生成内容不准确，或因此造成的间接损失，我们不承担责任。我们对你的赔偿总额不超过你在过去 12 个月为 Phemo 支付的费用。</p>
+<p>在法律允许的范围内，Phemo 按「现状」提供。对于录音遗漏、识别错误、AI 生成内容不准确，或因此造成的间接损失，我们不承担责任。我们对你的赔偿总额不超过港币 100 元。</p>
 <h2>8. 第三方</h2>
 <p>你使用的第三方 AI 助手由其提供方负责，适用其自身的条款和隐私政策。Apple 不是本条款的一方，不对 Phemo 负责，但有权作为第三方受益人执行本条款。</p>
 <h2>9. 适用法律</h2>
@@ -360,14 +360,14 @@ function terms(lang: Lang): PageText {
 <p>You are responsible for what you record with Phemo. You agree to follow the recording, privacy and data-protection laws that apply to you, to tell people and obtain their consent where required, not to use Phemo where recording is prohibited by law or by the venue, and not to use it for covert recording, stalking, harassment or anything that harms others.</p>
 <h2>3. Your content</h2>
 <p>The audio you record, its transcripts and the summaries made from them belong to you. They stay on your devices and in your own iCloud; we never receive or process them. An AI provider you enter in Settings is your choice: your iPhone sends text straight to it, under its own terms.</p>
-<h2>4. Devices, accounts and purchases</h2>
-<p>Phemo needs no account. Keep your devices and Apple Account safe; letting an AI assistant read your Phemo files, or entering an AI provider key in Settings, counts as your own action, and any charges are between you and that provider. Pro is bought through the App Store, and refunds follow Apple's rules.</p>
+<h2>4. Devices and accounts</h2>
+<p>Phemo needs no account. Keep your devices and Apple Account safe; letting an AI assistant read your Phemo files, or entering an AI provider key in Settings, counts as your own action, and any charges are between you and that provider. Phemo is currently free.</p>
 <h2>5. System limits</h2>
 <p>Phemo works within watchOS limits: calls and Siri interrupt recording for a while, the system may end the app for battery, memory or updates, and recording has to be started from the app. We resume automatically where we can but cannot guarantee that everything is recorded.</p>
 <h2>6. Changes and termination</h2>
 <p>We may update, change or remove features. If we shut down the whole service we will tell you in advance; what is in your iCloud stays yours and remains accessible. We may suspend or end your use if you break these terms.</p>
 <h2>7. Disclaimers and liability</h2>
-<p>To the extent the law allows, Phemo is provided "as is". We are not liable for missed recordings, transcription errors, inaccurate AI output or indirect losses arising from them. Our total liability to you is limited to what you paid for Phemo in the previous 12 months.</p>
+<p>To the extent the law allows, Phemo is provided "as is". We are not liable for missed recordings, transcription errors, inaccurate AI output or indirect losses arising from them. Our total liability to you is limited to HK$100.</p>
 <h2>8. Third parties</h2>
 <p>Third-party AI assistants you use are the responsibility of their providers and governed by their own terms and policies. Apple is not a party to these terms and is not responsible for Phemo, but may enforce these terms as a third-party beneficiary.</p>
 <h2>9. Governing law</h2>

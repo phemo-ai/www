@@ -1,11 +1,11 @@
 // Static site on Cloudflare Workers (static assets). The worker runs only for "/" (language) and "/lang/*".
-// Custom domain phemo.app: add "routes": [{ "pattern": "phemo.app", "custom_domain": true }] once the zone exists.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "phemo-www",
   "main": "worker/index.ts",
   "compatibility_date": "2026-11-01",
   "workers_dev": true,
+  "routes": [{ "pattern": "phemo.app", "custom_domain": true }],
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",

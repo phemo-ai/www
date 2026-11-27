@@ -1,6 +1,7 @@
 /** Page content, zh-Hans and en. Bodies are trusted HTML; {{BASE}} is replaced with the site origin at render time. */
+import { CHANGELOG, chain, changelogBody, liveWatch } from "./live";
 export type Lang = "zh" | "en";
-export type PageId = "home" | "privacy" | "terms" | "support" | "agents";
+export type PageId = "home" | "privacy" | "terms" | "support" | "agents" | "changelog";
 
 export interface PageText {
   title: string;
@@ -30,7 +31,7 @@ interface Feature { title: string; text: string; visual: string }
 interface HomeCopy {
   title: string; description: string;
   h1: string; sub: string; soon: string; reqLine: string;
-  heroPhoneAlt: string; heroWatchAlt: string;
+  heroPhoneAlt: string;
   featH: string; features: Feature[];
   reqH: string; req: [string, string][];
   faqH: string; faq: [string, string][];
@@ -66,17 +67,6 @@ function callStrip(zh: boolean) {
 <p class="legend">${zh ? "通话时 watchOS 占用麦克风；挂断后不用你动手" : "watchOS holds the microphone during the call; afterwards you don't lift a finger"}</p></div>`;
 }
 
-function flow(zh: boolean) {
-  return `<div class="viz viz-flow">
-<div class="node">Apple Watch<small>${zh ? "只录有人说话的片段" : "speech-only chunks"}</small></div>
-<div class="arrow" aria-hidden="true"></div>
-<div class="node pass">iPhone<small>${zh ? "在手机上转写，不经过我们" : "transcribes on the phone, never through us"}</small></div>
-<div class="arrow" aria-hidden="true"></div>
-<div class="node home">${zh ? "你的 iCloud" : "Your iCloud"}<small>${zh ? "录音 · 文字 · 要点 · 待办" : "audio · text · highlights · to-dos"}</small></div>
-<div class="fan"><span>${zh ? "你的设备" : "Your devices"}</span><span>Mac · ${zh ? "你的 AI 助手" : "your AI assistant"}</span></div>
-</div>`;
-}
-
 function todosCard(zh: boolean) {
   const items = zh
     ? [["把修改后的合同发给张经理", "周五", "15:31"], ["和设计组确认新手引导文案", "下周一", "09:16"], ["订周六晚七点妈妈生日的餐厅", "周六", "13:05"]]
@@ -106,19 +96,18 @@ const HOME: Record<Lang, HomeCopy> = {
     title: "Phemo · Apple Watch 上的全天录音，只留你说过的话",
     description: "戴上就录，表盘照常；只录人声，自动整理成文字、要点和待办，全部存在你自己的 iCloud。",
     h1: '<span class="nb">Apple Watch</span> 上的全天录音，<br>只留你说过的话。',
-    sub: "戴上就录，表盘照常。文字、要点和待办自动整理好，全部存在你自己的 iCloud。",
+    sub: "戴上就录，表盘照常。转写在你的 iPhone 上完成，文字、要点和待办只存在你自己的 iCloud，你的 agent 随时接手。",
     soon: "即将上架 App Store",
     reqLine: "watchOS 26 · iOS 27",
     heroPhoneAlt: "iPhone 上的 Phemo：今天的总结、要点和带时间的转写",
-    heroWatchAlt: "Apple Watch 上的 Phemo：正在录制说话，已录 2 小时 13 分",
     featH: "它能做什么",
     features: [
       { title: "一键开始，表盘照常", text: "表盘上点一下 Phemo 就开始录，放下手腕仍是你的表盘。", visual: watch("watch-face-zh", "表盘上的 Phemo 复杂功能，顶部是麦克风使用标志") },
+      { title: "轻点标记，长按停止", text: "说到要紧处轻点一下手表，iPhone 时间线上会插一面小旗，整理时优先看这一段。", visual: liveWatch("zh") },
       { title: "只录人声，撑一整天", text: "手表自己判断有没有人说话，安静时什么都不做。", visual: dayTimeline(true) },
       { title: "来电后自动续录", text: "通话、Siri 结束后自己接着录，接不上会轻震提醒。", visual: callStrip(true) },
-      { title: "只存在你自己的 iCloud", text: "在 iPhone 上转写，不经过任何 Phemo 服务器。", visual: flow(true) },
       { title: "每天的要点和待办", text: "用 iPhone 上的 Apple 智能，或你自己选的 AI 服务整理，待办带着截止时间。", visual: todosCard(true) },
-      { title: "你的 AI 助手也能读", text: "每天一份 Markdown，放在 iCloud 云盘，助手在你授权时读取。", visual: agentViz(true) },
+      { title: "直接连上你的 agent", text: "Claude、Codex、Cursor、WorkBuddy 通过 skill 或 MCP 读取每天的 Markdown，回顾、跟进都交给它。", visual: agentViz(true) },
     ],
     reqH: "需要什么",
     req: [["手表", "Apple Watch，watchOS 26 或更新"], ["手机", "iPhone，iOS 27 或更新"], ["iCloud", "登录 Apple 账户并打开 iCloud 云盘"], ["要点和待办", "支持 Apple 智能的 iPhone，或你自己的 AI 服务 Key（OpenAI、Anthropic、通义千问、豆包等）"]],
@@ -135,19 +124,18 @@ const HOME: Record<Lang, HomeCopy> = {
     title: "Phemo · All-day recording on Apple Watch that keeps only what was said",
     description: "Wear it and it records, with your watch face as usual. Speech only, turned into text, highlights and to-dos — all stored in your own iCloud.",
     h1: 'All-day recording on <span class="nb">Apple Watch</span> <br>that keeps only what was said.',
-    sub: "Tap once and keep your watch face. Text, highlights and to-dos sort themselves out — all stored in your own iCloud.",
+    sub: "Tap once and keep your watch face. Your iPhone transcribes on device; text, highlights and to-dos live only in your own iCloud, ready for your agent.",
     soon: "Coming to the App Store",
     reqLine: "watchOS 26 · iOS 27",
     heroPhoneAlt: "Phemo on iPhone: today's summary, highlights and timed transcript",
-    heroWatchAlt: "Phemo on Apple Watch: recording speech, 2 h 13 min so far",
     featH: "What it does",
     features: [
       { title: "One tap, your watch face stays", text: "Tap Phemo on your watch face to start; lower your wrist and it's still your face.", visual: watch("watch-face-en", "The Phemo complication on a watch face, with the microphone indicator at the top") },
+      { title: "Tap to mark, hold to stop", text: "Tap the watch when something matters; a flag lands on the iPhone timeline and that part is looked at first.", visual: liveWatch("en") },
       { title: "Speech only, all day", text: "The watch decides whether anyone is talking and does nothing in silence.", visual: dayTimeline(false) },
       { title: "Picks up again after calls", text: "After a call or Siri it resumes on its own, and taps your wrist if it can't.", visual: callStrip(false) },
-      { title: "Stored only in your own iCloud", text: "Transcribed on your iPhone, never through a Phemo server.", visual: flow(false) },
       { title: "Highlights and to-dos, daily", text: "Sorted by Apple Intelligence on your iPhone or the AI provider you choose, with due dates on the to-dos.", visual: todosCard(false) },
-      { title: "Readable by your AI assistant", text: "One Markdown file a day in iCloud Drive, read by your assistant when you allow it.", visual: agentViz(false) },
+      { title: "Plugs into your agent", text: "Claude, Codex, Cursor or WorkBuddy reads each day's Markdown through a skill or MCP, to look back and follow up.", visual: agentViz(false) },
     ],
     reqH: "What you need",
     req: [["Watch", "Apple Watch on watchOS 26 or later"], ["Phone", "iPhone on iOS 27 or later"], ["iCloud", "Signed in, with iCloud Drive on"], ["Highlights and to-dos", "An iPhone with Apple Intelligence, or your own AI provider key (OpenAI, Anthropic, Qwen, Doubao and others)"]],
@@ -175,8 +163,10 @@ function home(lang: Lang): PageText {
 <div class="actions"><span class="pill">${c.soon}</span></div>
 <p class="req-line">${c.reqLine}</p>
 </div>
-<div class="duo">${watch(`watch-recording-${sfx}`, c.heroWatchAlt, { mark: 'data-state="idle" data-cycle="idle:2.6,speak:4.2,saved:1.3"', lazy: false })}${iphone(`iphone-today-${sfx}`, c.heroPhoneAlt, false)}</div>
+<div class="duo">${liveWatch(lang, { lazy: false })}${iphone(`iphone-today2-${sfx}`, c.heroPhoneAlt, false)}</div>
 </div></section>
+
+${chain(lang)}
 
 <section class="features" id="features"><div class="wrap">
 <h2>${c.featH}</h2>
@@ -519,4 +509,9 @@ ${tools}
   };
 }
 
-export const PAGES: Record<PageId, (lang: Lang) => PageText> = { home, privacy, terms, support, agents };
+function changelog(lang: Lang): PageText {
+  const c = CHANGELOG[lang];
+  return { title: c.title, description: c.description, body: changelogBody(lang) };
+}
+
+export const PAGES: Record<PageId, (lang: Lang) => PageText> = { home, privacy, terms, support, agents, changelog };

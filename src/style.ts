@@ -190,7 +190,7 @@ details p{padding:0 0 20px}
 .live .wapp,.live .wface{position:absolute;inset:0}
 .live .wapp{transition:transform .5s cubic-bezier(.3,.75,.25,1),opacity .35s ease;transform-origin:50% 42%}
 .live .wapp .scr{position:static}
-.wmark2{position:absolute;left:49.88%;top:42.24%;width:34.6%;height:auto;aspect-ratio:1;transform:translate(-50%,-50%);color:#fff}
+.wmark2{position:absolute;left:50%;top:42.45%;width:37.5%;height:auto;aspect-ratio:1;transform:translate(-50%,-50%);color:#fff}
 .wface{background:#000;color:#fff;font-family:-apple-system,"SF Pro Rounded","Inter",sans-serif;opacity:0;transform:scale(1.06);transition:opacity .45s ease .12s,transform .55s cubic-bezier(.3,.75,.25,1) .08s}
 .live[data-rec="0"] .wmic{display:none}
 .fcap .rec,.live[data-rec="0"] .fcap .idle{display:inline}

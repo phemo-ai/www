@@ -7,6 +7,17 @@ App Store marketing guidelines (https://developer.apple.com/app-store/marketing/
 shadows or animation of the devices; correct relative scale when shown together; nothing enters or leaves a screen.
 Apple, Apple Watch, iPhone, iPad, MacBook Air, iCloud and Mac are trademarks of Apple Inc.
 
+## Phemo app screenshots — refreshed 2026-11-28
+
+`public/screens/iphone-today2-{zh,en}.{png,webp}` and `watch-rec-nomark-{zh,en}.{png,webp}`
+derive from the app's 2026-11-28 CI screenshots. The iPhone sample-data capsule is removed, retaining
+the native calendar-only button frame and the new CI calendar glyph. All remaining text and controls
+are the actual CI pixels, downsampled to 540 × 1173. The watch images preserve aspect ratio at 416 px
+wide, trimming only black padding to 496 px tall; the complete central mark is removed for the site's
+animated vector overlay. Edits are confined to those regions; device artwork is unchanged.
+WebP versions of the refreshed screenshots are lossless. The watch-face images remain unchanged:
+neither language has the removed information button or AI-service configuration.
+
 ## Agent marks — reviewed 2026-11-28
 
 The starting `src/icons.ts` contained **14 distinct marks, used for 15 agent entries** (Claude's mark appeared

@@ -1,7 +1,7 @@
 # Third-party material on phemo.app
 
 ## Apple product bezels
-`public/bezels/` — Apple Watch Series 11 46 mm, iPhone 17 Pro, iPad Pro (M5) 11-inch and MacBook Air M5 13-inch
+`public/bezels/` — Apple Watch Series 11 46 mm and iPhone 17 Pro
 product images from Apple Design Resources (https://developer.apple.com/design/resources/), used as is under the
 App Store marketing guidelines (https://developer.apple.com/app-store/marketing/guidelines/): no rotation, cropping,
 shadows or animation of the devices; correct relative scale when shown together; nothing enters or leaves a screen.
@@ -18,40 +18,63 @@ animated vector overlay. Edits are confined to those regions; device artwork is 
 WebP versions of the refreshed screenshots are lossless. The watch-face images remain unchanged:
 neither language has the removed information button or AI-service configuration.
 
-## Agent marks — reviewed 2026-11-28
+## Home interaction artwork — 2026-11-28
 
-The starting `src/icons.ts` contained **14 distinct marks, used for 15 agent entries** (Claude's mark appeared
-for both Claude Code and Claude Desktop). All 22 agents remain available by name in the directory.
-CC0 for a Simple Icons drawing does not grant trademark permission. This review checks the owner's rules
-for a factual compatibility reference, with no endorsement or partnership claim. Where a published brand
-page supplies artwork but no clear permission for this use, we use the name alone, conservatively; that
-is an unresolved grant, not a claim that the owner forbids every reference.
+The hero is an interactive illustration, with Phemo's actual recording-screen pixels on the Watch,
+a live HTML Today transcript on iPhone, and illustrative results produced by the user's own agent.
+The iPad and MacBook have been removed from the home page. The Watch and iPhone bezels are used
+at every viewport size, at their correct relative scale; the iCloud node, the Markdown file chip and
+the agent panel are drawn HTML.
+At the owner's explicit request, the hero restores the separate crown and crownless-watch assets
+from 2235e6a. Only the separate crown and screen feedback animate. This crown edit is a conscious
+exception to the unmodified-device marketing rule above, not a claim of Apple approval.
 
-| Company / mark | Result | Published guideline or policy; reason |
+## Agent marks — sources refreshed 2026-11-28
+
+All 22 listed agents now have a local mark, as explicitly requested by the site owner. This supersedes
+the previous conservative name-only display. It does not grant trademark permission or change the
+published restrictions identified in the earlier review. Marks identify compatibility only; no affiliation,
+endorsement or partnership is claimed. All are rendered with a consistent grayscale treatment and
+unchanged aspect ratio. Names and marks remain the property of their respective owners.
+
+Simple Icons drawings below are from pinned **16.38.1**, CC0-1.0 for the drawings, not trademark rights:
+https://www.npmjs.com/package/simple-icons/v/16.38.1 . The SVG filename appears after `SI:`.
+Other files are unchanged official vendor favicons/app symbols, saved under `public/agent-marks/`.
+
+| Agent | Local file | Artwork source |
 | --- | --- | --- |
-| Anthropic / Claude (2 entries) | Removed | https://www.anthropic.com/legal/trademark-guidelines — prior permission and approved materials required. |
-| Anysphere / Cursor | Removed | https://cursor.com/brand — public asset/representation guide, but no express compatibility-marketing grant; name only pending clarification. |
-| GitHub / GitHub Copilot | Removed | https://brand.github.com/foundations/logo — standalone Copilot icon deprecated since 2025; express permission requirements and permitted-logo restrictions. |
-| Cognition / Windsurf | Kept | https://windsurf.com/brand — explicitly permits symbol in standalone logo grids. Use unchanged official black/white SVGs, including their built-in clear space; no tint, effects or logo animation. |
-| Google / Gemini | Removed | https://about.google/brand-resource-center/brand-terms/ and https://about.google/brand-resource-center/guidance/partnerships/ — explicit approval required for brand features; non-partner references use plain text. |
-| Zed Industries / Zed | Kept | https://zed.dev/brand — black, white or brand blue marks permitted, with no implied official connection. Original undistorted Simple Icons geometry, pure black/white, separate from Phemo's mark. |
-| Cline Bot / Cline | Removed | https://cline.bot/brand and https://cline.bot/tos — public assets, but no express compatibility-marketing grant identified; use name only pending clarification. |
-| Element Labs / LM Studio | Kept | https://lmstudio.ai/brand — expressly permits referential use subject to guidelines. Replaced the old Simple Icons drawing with the owner's unchanged white outline app icon on a black background, keeping clear space. |
-| JetBrains | Removed | https://www.jetbrains.com/company/brand/ — referential use and built-in connections allowed with supplied assets and a backlink. Removed the previous outlined Simple Icons variant; retaining the name avoids using an unverified variant at tiny size. |
-| Tencent / CodeBuddy | Removed | https://www.codebuddy.ai/document/enterprise-agreement — Tencent/CodeBuddy brand features reserved; no authorization for this use. |
-| ByteDance / TRAE | Removed | https://docs.trae.cn/ide_terms-of-service and https://www.bytedance.com/ip-principles — no public third-party logo-use grant identified; name only pending permission. |
-| Moonshot AI / Kimi | Removed | https://www.kimi.com/zh-cn/policies/logo-usage-terms — permission covers media/news/non-commercial displays; product compatibility marketing is not clearly covered. |
-| Alibaba Cloud / Qwen | Removed | https://qwen.ai/termsservice — section V reserves marks and prohibits unauthorized use/publication. |
-| Baidu | Removed | https://abc.baidu.com/duty/copyright.html — use without permission prohibited. |
+| Claude Code | claude.svg | SI: claude; https://claude.ai |
+| Claude Desktop | claude.svg | SI: claude; https://claude.ai |
+| Codex | codex.svg | https://openai.com/favicon.svg (official OpenAI favicon linked by https://openai.com/codex/) |
+| Cursor | cursor.svg | SI: cursor; https://cursor.com/brand |
+| VS Code · GitHub Copilot | vscode.svg | SI: githubcopilot; https://primer.style/foundations/icons/copilot-24 |
+| Windsurf | windsurf-black.svg | https://exafunction.github.io/public/brand/windsurf-black-symbol.svg (https://windsurf.com/brand) |
+| Gemini CLI | gemini-cli.svg | SI: googlegemini; https://gemini.google.com |
+| Zed | zed.svg | SI: zedindustries; https://github.com/zed-industries/zed/blob/ccc939124fa2f366b3029926447fd0a0c46a85c7/assets/icons/logo_96.svg |
+| Cline | cline.svg | SI: cline; https://cline.bot/assets/branding/logos/cline-wordmark-black.svg |
+| Kiro | kiro.svg | https://kiro.dev/icon.svg?fe599162bb293ea0 (official site favicon) |
+| Goose | goose.svg | https://raw.githubusercontent.com/aaif-goose/goose/main/documentation/static/img/goose.svg (official repository; block/goose redirects here) |
+| LM Studio | lmstudio-white.svg | https://lmstudio.ai/assets/marketing/brand/download/logos/lm-studio-icon-outline-white.svg |
+| JetBrains AI Assistant | jetbrains.svg | SI: jetbrains; https://www.jetbrains.com/company/brand/logos/ |
+| WorkBuddy | workbuddy.svg | https://assets.workbuddy.cn/web/workbuddy/cf2278d3954eddb826bf856f86bcda9acf925917/assets/logo.svg (official https://www.codebuddy.cn/work/ favicon) |
+| CodeBuddy | codebuddy.svg | SI: codebuddy; https://www.codebuddy.cn |
+| Trae | trae.svg | SI: trae; https://www.trae.ai |
+| Qoder · 通义灵码 | qoder.svg | https://qoder.com/favIcon.svg (official site favicon) |
+| Kimi Code | kimi-code.svg | SI: kimi; https://moonshotai.github.io/Branding-Guide |
+| Qwen Code | qwen-code.svg | SI: qwen; https://qwen.ai |
+| iFlow CLI | iflow.png | https://cli.iflow.cn/img/favicon.ico (official PNG favicon, saved with correct PNG extension) |
+| Cherry Studio | cherry-studio.png | https://www.cherry-ai.com/assets/favicon-BmbgeFTf.png (official site favicon) |
+| 文心快码 Comate | comate.svg | SI: baidu; https://www.baidu.com (vendor mark) |
 
-Retained official files:
-- `public/agent-marks/windsurf-black.svg`: https://exafunction.github.io/public/brand/windsurf-black-symbol.svg
-- `public/agent-marks/windsurf-white.svg`: https://exafunction.github.io/public/brand/windsurf-white-symbol.svg
-- `public/agent-marks/lmstudio-white.svg`: https://lmstudio.ai/assets/marketing/brand/download/logos/lm-studio-icon-outline-white.svg
-- `src/icons.ts`: Zed geometry from Simple Icons 16.38.1 (https://simpleicons.org, CC0-1.0 for the drawing).
-
-The site uses names for agents without a retained mark, including Codex, Kiro, Goose, WorkBuddy, Qoder,
-iFlow CLI and Cherry Studio. No company has been contacted or asked for permission in this task.
+Previously identified restrictions remain relevant: Anthropic requires permission
+(https://www.anthropic.com/legal/trademark-guidelines), GitHub restricts Copilot icon usage
+(https://brand.github.com/foundations/logo), Google requires brand approval
+(https://about.google/brand-resource-center/brand-terms/), Tencent reserves brand rights
+(https://www.codebuddy.ai/document/enterprise-agreement), Qwen prohibits unauthorized mark publication
+(https://qwen.ai/termsservice), and Baidu prohibits unauthorized use
+(https://abc.baidu.com/duty/copyright.html). Public artwork availability is not a trademark license.
+No vendor was contacted in this task. The owner's requested display overrides the earlier site policy,
+not these owners' legal terms.
 
 ## Fonts
 `public/fonts/inter-latin-wght.woff2` — Inter, SIL Open Font License 1.1 (`public/fonts/LICENSE.txt`).

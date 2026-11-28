@@ -5,7 +5,7 @@
  * Cursor https://cursor.com/docs/mcp/install-links, LM Studio https://lmstudio.ai/docs/app/mcp/deeplink,
  * VS Code vscode.dev/redirect/mcp/install, Goose goose://extension, Cherry Studio cherrystudio://mcp/install.
  */
-import { ICONS } from "./icons";
+import { AGENT_MARKS } from "./icons";
 import { useCases } from "./usecases";
 
 type Lang = "zh" | "en";
@@ -101,12 +101,8 @@ ${useCases(lang, true)}
 </div>`;
 }
 
-/** Only reviewed marks render; all other agents appear by name. See NOTICE.md. */
-const MARK: Record<string, string> = { zed: "zedindustries" };
+/** Factual compatibility marks. Vendor ownership and the source of every asset are in NOTICE.md. */
 export function agentMark(id: string, size = 20) {
-  if (id === "windsurf") return `<span class="amark official-mark" style="width:${size}px;height:${size}px" aria-hidden="true"><img class="mark-black" src="/agent-marks/windsurf-black.svg" width="${size}" height="${size}" alt=""><img class="mark-white" src="/agent-marks/windsurf-white.svg" width="${size}" height="${size}" alt=""></span>`;
-  if (id === "lm-studio") return `<span class="amark lm-mark" aria-hidden="true"><img src="/agent-marks/lmstudio-white.svg" width="${size}" height="${size}" alt=""></span>`;
-  const slug = MARK[id];
-  const icon = slug ? ICONS[slug] : undefined;
-  return icon ? `<svg class="amark" viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true"><path d="${icon.d}" fill="currentColor"/></svg>` : "";
+  const file = AGENT_MARKS[id];
+  return file ? `<img class="amark vendor-mark${id === "lm-studio" ? " lm-vendor" : ""}" src="/agent-marks/${file}" width="${size}" height="${size}" alt="" aria-hidden="true">` : "";
 }

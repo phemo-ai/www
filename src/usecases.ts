@@ -193,9 +193,9 @@ const COPY = {
   zh: { title: "Phemo + 你的 agent", try: "试试这些", sub: "Phemo 只提供你说过的话。你的 agent 和它已有的工具负责完成工作。", example: "以下为结果示意；把提示词复制给你自己的 agent。", connect: "连接你的 agent", copy: "复制", doctor: "仅整理医生原话，不构成医疗建议。", draft: "跟进邮件 · 草稿", pr: "修复登录页闪退", open: "PR 已打开", crm: "客户记录已更新", budget: "预算 300k · 决策人 CTO", research: "8 场访谈 · 结论附原话和时间", care: "家庭照护安排", calendar: "复查 · 两周后", quiz: "Anki 记忆卡 · 10 道小测", family: "餐厅候选 · 购物清单 · 行程", weekly: "按项目 · 关键决定 · 原话出处" },
   en: { title: "Phemo + your agent", try: "Try these", sub: "Phemo only provides what you said. Your own agent and the tools it already has do the work.", example: "Illustrative results. Copy a prompt to your own agent.", connect: "Connect your agent", copy: "Copy", doctor: "Organises the doctor's words. Not medical advice.", draft: "Follow-up email · Draft", pr: "Fix login screen crash", open: "Pull request open", crm: "Customer record updated", budget: "Budget 300k · Decision maker CTO", research: "8 interviews · Findings with quotes and times", care: "Care plan", calendar: "Check-up · In two weeks", quiz: "Anki deck · 10-question quiz", family: "Restaurant shortlist · Shopping list · Itinerary", weekly: "By project · Key decisions · Sources" },
 };
-function preview(id: string, lang: Lang) {
+export function preview(id: string, lang: Lang) {
   const c = COPY[lang];
-  const file = (name: string, kind = "MD") => `<span class="file-chip"><i>${kind}</i>${name}</span>`;
+  const file = (name: string, kind = "MD") => `<span class="file-chip"><i class="k-${kind.toLowerCase()}">${kind}</i>${name}</span>`;
   const row = (title: string, detail: string) => `<div class="result-row"><span class="result-check" aria-hidden="true">↗</span><div><b>${esc(title)}</b><span>${esc(detail)}</span></div></div>`;
   switch (id) {
     case "proposal": return `<div class="result-files">${file("proposal.docx", "W")}${file("quote.xlsx", "X")}</div>${row(c.draft, lang === "zh" ? "方案与报价已附上，供你审阅。" : "Proposal and quote attached, ready for review.")}`;

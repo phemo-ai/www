@@ -392,7 +392,7 @@ ${qa("How do I let my agent read Phemo?", `See <a href="/en/agents">Connect your
   };
 }
 
-const DIR = "~/Library/Mobile Documents/iCloud~ai~phemo~app/Documents/Phemo";
+const DIR = "~/Library/Mobile Documents/iCloud~ai~phemo~app/Documents";
 const SAMPLE = `---
 date: 2026-11-26
 timezone: Asia/Shanghai

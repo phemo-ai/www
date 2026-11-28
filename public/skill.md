@@ -12,7 +12,7 @@ Phemo records the user's day on their Apple Watch (speech only) and transcribes 
 On the user's Mac (iCloud Drive must be on):
 
 ```
-~/Library/Mobile Documents/iCloud~ai~phemo~app/Documents/Phemo/
+~/Library/Mobile Documents/iCloud~ai~phemo~app/Documents/
   2026/11/2026-11-26.md     one file per day
   todos.md                  open to-dos (convenience copy)
   README.md
@@ -21,7 +21,7 @@ On the user's Mac (iCloud Drive must be on):
 In Finder this is **iCloud Drive › Phemo**. If the user gives another path (or sets `PHEMO_DIR`), use that.
 
 ```sh
-PHEMO_DIR="${PHEMO_DIR:-$HOME/Library/Mobile Documents/iCloud~ai~phemo~app/Documents/Phemo}"
+PHEMO_DIR="${PHEMO_DIR:-$HOME/Library/Mobile Documents/iCloud~ai~phemo~app/Documents}"
 ls "$PHEMO_DIR"/*/*/ | tail        # newest days last
 ```
 

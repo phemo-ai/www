@@ -34,6 +34,7 @@ function footer(lang: Lang) {
   return `<footer><div class="wrap"><span>Phemo · © 2026 Benchyard Co., Limited</span>
 <nav><a href="${href(lang, "agents")}">${zh ? "连接你的 agent" : "Connect your agent"}</a><a href="${href(lang, "changelog")}">${zh ? "更新日志" : "What's new"}</a><a href="${href(lang, "privacy")}">${zh ? "隐私政策" : "Privacy"}</a><a href="${href(lang, "terms")}">${zh ? "使用条款" : "Terms"}</a><a href="${href(lang, "support")}">${zh ? "帮助与支持" : "Support"}</a><a href="mailto:support@benchyard.cn">support@benchyard.cn</a></nav>
 <p class="legal">${zh ? "Apple、Apple Watch、iPhone、iCloud 和 Mac 是 Apple Inc. 在美国和其他国家/地区注册的商标。App Store 是 Apple Inc. 的服务商标。" : "Apple, Apple Watch, iPhone, iCloud and Mac are trademarks of Apple Inc., registered in the U.S. and other countries. App Store is a service mark of Apple Inc."}</p>
+<p class="legal">${zh ? "各 agent 的名称与标志属于其各自所有者。无隶属或背书关系。" : "Agent names and marks belong to their owners. No affiliation or endorsement."}</p>
 </div></footer>`;
 }
 

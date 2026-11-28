@@ -1,4 +1,4 @@
-// Website behaviour: the animated Echo marks, the live watch (crown press → watch face), the data-path animation,
+// Website behaviour: the animated Echo marks, the home hero (Watch → iPhone → iCloud → agent), copy buttons,
 // and the header backdrop on scroll. Bundled into dist/site.js by build.mjs (mark geometry from brand/phemo-mark.mjs).
 import { frame } from "../brand/phemo-mark.mjs";
 document.documentElement.classList.remove("no-js");
@@ -24,6 +24,8 @@ class Mark {
     this.start = now();
   }
   draw(t) {
+    if (this.drawn && this.state === "still" && !this.cycle.length) return;
+    this.drawn = true;
     let state = this.state, since = t - this.start;
     if (this.cycle.length) {
       const total = this.cycle.reduce((a, [, d]) => a + d, 0);
@@ -65,70 +67,182 @@ const onScroll = () => document.documentElement.classList.toggle("scrolled", scr
 addEventListener("scroll", onScroll, { passive: true });
 onScroll();
 
-/* The watch is a small, user-controlled demo. Its device artwork never changes. */
-for (const el of document.querySelectorAll("[data-watch-scene]")) {
-  const watch = el.querySelector("[data-watch]");
-  const hints = JSON.parse(el.dataset.hints || "[]");
-  const hint = el.querySelector("[data-hint]");
-  const face = watch.querySelector(".wface"), app = watch.querySelector(".wapp");
-  let interacted = false;
-  const show = (state, recording) => {
+/* The home hero: one spoken line travels Watch → iPhone → iCloud → agent. Each press plays one finite run;
+   the markup is rendered in its final state, so without JavaScript (or with reduced motion) it reads complete. */
+for (const el of document.querySelectorAll("[data-journey]")) {
+  const { cases, agents, href, copy } = JSON.parse(el.querySelector("[data-journey-data]").textContent);
+  const q = (s) => el.querySelector(s), qa = (s) => [...el.querySelectorAll(s)];
+  const zh = document.documentElement.lang.startsWith("zh");
+  const stage = q(".stage"), packets = q("[data-packets]");
+  const watch = q("[data-watch]"), face = q(".wface"), app = q(".wapp"), crownBtn = q(".crown");
+  const FLAGS = ["s-heard", "s-saved", "s-asked", "s-done"];
+  const markOf = (role) => marks.find((m) => m.svg === q(`[data-role="${role}"]`));
+  const watchMark = markOf("watch-mark"), phoneMark = markOf("phone-mark");
+  const setMark = (m, state) => { if (!m) return; m.state = state; m.start = now(); m.drawn = false; m.draw(now()); };
+  let index = 0, agent = cases[0].agent, timers = [], started = false, inView = false, playing = false;
+  const running = new Set();
+  const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+  const stop = () => {
+    timers.forEach(clearTimeout); timers = [];
+    running.forEach((a) => a.cancel()); running.clear();
+    packets.replaceChildren();
+  };
+
+  const showWatch = (state) => {
+    const refocus = el.contains(document.activeElement) && (face.contains(document.activeElement) || app.contains(document.activeElement));
     watch.dataset.state = state;
-    watch.dataset.rec = recording ? "1" : "0";
-    face.inert = state !== "face";
-    app.inert = state !== "app";
+    face.inert = state !== "face"; app.inert = state !== "app";
     face.setAttribute("aria-hidden", String(state !== "face"));
     app.setAttribute("aria-hidden", String(state !== "app"));
-    el.classList.toggle("talking", recording);
-    hint.textContent = hints[state === "app" ? 1 : recording ? 3 : 0] || "";
+    if (refocus) (state === "app" ? app : face).querySelector("button")?.focus({ preventScroll: true });
   };
-  show("face", false);
-  el.addEventListener("click", (e) => {
-    const button = e.target.closest?.("[data-act]");
-    if (!button) return;
-    const act = button.dataset.act;
-    if (act === "comp") { show("app", true); app.querySelector("button")?.focus({preventScroll:true}); }
-    if (act === "crown") { show("face", watch.dataset.rec === "1"); face.querySelector("button")?.focus({preventScroll:true}); }
-    if (act === "screen") {
-      watch.classList.remove("marked"); void watch.offsetWidth; watch.classList.add("marked");
-      const flag = watch.querySelector(".flag");
-      flag.textContent = flag.dataset.message;
-      setTimeout(() => { watch.classList.remove("marked"); flag.textContent = ""; }, 1300);
-    }
-    if (!interacted) {
-      interacted = true;
-      setTimeout(() => { hint.classList.add("dismissed"); }, reduce ? 0 : 1800);
-    }
-  });
-}
 
-/* Only adjacent agent names and decorative marks loop, while visible. Content is always present. */
-const loops = new Map();
-for (const el of document.querySelectorAll('[data-loop="agent"]')) {
-  const titles = [...el.querySelectorAll(".an")];
-  const strip = el.closest(".row").querySelector(".astrip");
-  let k = 0, timer;
-  const show = () => {
-    const id = titles[k++ % titles.length]?.dataset.agent;
-    titles.forEach((x) => x.classList.toggle("is-on", x.dataset.agent === id));
-    strip.querySelectorAll(".as").forEach((x) => x.classList.toggle("is-on", x.dataset.agent === id));
+  /* Rails join the anchors; they are measured, so they follow any layout (one row, or stacked on a phone). */
+  const rails = [0, 1, 2, 3].map((i) => [q(`[data-rail="${i}"]`), q(`[data-rail-on="${i}"]`)]);
+  const layout = () => {
+    const base = stage.getBoundingClientRect();
+    const box = (name) => {
+      const r = q(`[data-anchor="${name}"]`).getBoundingClientRect();
+      return { l: r.left - base.left, r: r.right - base.left, t: r.top - base.top, b: r.bottom - base.top, cx: r.left - base.left + r.width / 2, cy: r.top - base.top + r.height / 2, h: r.height };
+    };
+    const w = box("watch"), c = box("cloud"), p = box("phone"), f = box("file"), a = box("agent");
+    const clamp = (y, o) => Math.min(Math.max(y, o.t + Math.min(40, o.h * .2)), o.b - Math.min(40, o.h * .2));
+    const h = (x1, y1, x2, y2) => { const dx = Math.max(6, (x2 - x1) * .5); return `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`; };
+    const v = (x1, y1, x2, y2) => { const dy = Math.max(3, (y2 - y1) * .5); return `M${x1},${y1} C${x1},${y1 + dy} ${x2},${y2 - dy} ${x2},${y2}`; };
+    const d = [h(w.r + 4, clamp(c.cy, w), c.l - 3, c.cy), h(c.r + 3, c.cy, p.l + 1, clamp(c.cy, p))];
+    if (f.l >= p.r - 1) d.push(h(p.r - 1, clamp(f.cy, p), f.l - 3, f.cy), h(f.r + 3, f.cy, a.l - 1, clamp(f.cy, a)));
+    else d.push(v(f.cx, p.b + 2, f.cx, f.t - 2), v(f.cx, f.b + 2, f.cx, a.t - 1));
+    rails.forEach(([dotted, solid], i) => { dotted.setAttribute("d", d[i]); solid.setAttribute("d", d[i]); });
   };
-  loops.set(el, { start() { if (!timer && !reduce) timer = setInterval(show, 2600); }, stop() { clearInterval(timer); timer = null; } });
-}
-const sceneIO = new IntersectionObserver((entries) => {
-  entries.forEach((e) => {
-    e.target.classList.toggle("motion-visible", e.isIntersecting && !document.hidden);
-    const loop = loops.get(e.target);
-    if (loop) e.isIntersecting && !document.hidden ? loop.start() : loop.stop();
+  const light = (i, on) => rails[i][1].classList.toggle("is-on", on);
+  const packet = (i, ms) => {
+    if (reduce || !inView || document.hidden) return;
+    const path = rails[i][0], length = path.getTotalLength();
+    if (!length) return;
+    const dot = document.createElementNS(NS, "circle");
+    dot.setAttribute("r", "3.5");
+    packets.appendChild(dot);
+    const n = 24;
+    const frames = Array.from({ length: n + 1 }, (_, k) => {
+      const pt = path.getPointAtLength(length * k / n);
+      return { transform: `translate(${pt.x}px,${pt.y}px)`, opacity: k === 0 || k === n ? 0 : 1 };
+    });
+    const a = dot.animate(frames, { duration: ms, easing: "ease-in-out" });
+    running.add(a);
+    a.onfinish = a.oncancel = () => { running.delete(a); dot.remove(); };
+  };
+
+  const parts = (text) => (zh ? Array.from(text) : text.match(/\S+\s*/g) || [text]);
+  const type = (target, text, start, duration) => {
+    const p = parts(text);
+    p.forEach((_, i) => later(() => { target.textContent = p.slice(0, i + 1).join(""); }, start + duration * (i + 1) / p.length));
+  };
+
+  const meta = () => {
+    const u = cases[index], a = agents[agent];
+    q("[data-active-agent]").textContent = a.name;
+    q("[data-active-mark]").innerHTML = a.mark;
+    q("[data-active-mark]").classList.toggle("dark", a.dark);
+    q("[data-active-link]").href = `${href}#${agent}`;
+    q("[data-case-title]").textContent = u.title;
+    q("[data-spoken-time]").textContent = u.time;
+    q("[data-phone-time]").textContent = u.time;
+    q("[data-prompt-text]").textContent = u.prompt;
+    q("[data-copy]").dataset.copy = u.prompt;
+    q("[data-deliverable]").innerHTML = u.deliverable;
+    qa("[data-play-case]").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.playCase === index)));
+    qa("[data-play-agent]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.playAgent === agent)));
+    const pill = q(`[data-play-case="${index}"]`);
+    if (pill.parentElement.scrollWidth > pill.parentElement.clientWidth) pill.parentElement.scrollTo({ left: pill.offsetLeft - 12, behavior: reduce ? "auto" : "smooth" });
+  };
+  const finish = () => {
+    playing = false;
+    el.classList.add(...FLAGS); el.dataset.stage = "done";
+    rails.forEach((_, i) => light(i, true));
+    q("[data-spoken]").textContent = cases[index].line;
+    q("[data-phone-text]").textContent = cases[index].line;
+    q("[data-transcript-status]").textContent = copy.final;
+    q("[data-cloud-status]").textContent = copy.synced;
+    q("[data-agent-status]").textContent = copy.done;
+    q("[data-simulate-label]").textContent = copy.again;
+    setMark(watchMark, "idle"); setMark(phoneMark, "still");
+  };
+  const play = (i, who = cases[i].agent) => {
+    stop(); started = true; index = i; agent = who; meta();
+    watch.dataset.rec = "1"; showWatch("app");
+    if (reduce) { finish(); return; }
+    const line = cases[index].line, n = parts(line).length;
+    const D = Math.min(2400, Math.max(1300, n * (zh ? 62 : 150)));
+    playing = true;
+    el.classList.remove(...FLAGS); el.dataset.stage = "recording";
+    rails.forEach(([, solid]) => { solid.style.transition = "none"; solid.classList.remove("is-on"); });
+    void stage.offsetWidth;
+    rails.forEach(([, solid]) => { solid.style.transition = ""; });
+    q("[data-spoken]").textContent = ""; q("[data-phone-text]").textContent = "";
+    q("[data-transcript-status]").textContent = copy.volatile;
+    q("[data-cloud-status]").textContent = copy.syncing;
+    q("[data-agent-status]").textContent = copy.wait;
+    q("[data-simulate-label]").textContent = copy.again;
+    setMark(watchMark, "speak"); setMark(phoneMark, "write");
+
+    // Speaking: audio leaves the watch in small packets while it is still being said; the phone's text trails by a beat.
+    light(0, true); light(1, true);
+    type(q("[data-spoken]"), line, 80, D);
+    type(q("[data-phone-text]"), line, 480, D);
+    for (let t = 120; t < D + 150; t += 230) later(() => { packet(0, 420); later(() => packet(1, 420), 300); }, t);
+    const heard = D + 700;
+    later(() => {
+      el.classList.add("s-heard"); el.dataset.stage = "saving";
+      q("[data-phone-text]").textContent = line;
+      q("[data-transcript-status]").textContent = copy.final;
+      q("[data-cloud-status]").textContent = copy.synced;
+      setMark(watchMark, "idle"); setMark(phoneMark, "saved");
+      light(2, true); packet(2, 560);
+    }, heard);
+    later(() => { el.classList.add("s-saved"); setMark(phoneMark, "still"); }, heard + 560);
+    later(() => {
+      el.classList.add("s-asked"); el.dataset.stage = "reading";
+      q("[data-agent-status]").textContent = copy.reading;
+      light(3, true); packet(3, 620); later(() => packet(3, 620), 240);
+    }, heard + 1150);
+    later(() => { el.dataset.stage = "working"; q("[data-agent-status]").textContent = copy.working; }, heard + 2050);
+    later(finish, heard + 3250);
+  };
+
+  const pressCrown = () => {
+    crownBtn.classList.add("pressed");
+    showWatch(watch.dataset.state === "app" ? "face" : "app");
+    if (reduce) return;
+    // The crown travels inward and springs back, the case gives a little, and a ring leaves the point of contact.
+    q(".cimg").animate([{ transform: "translateX(0) scaleX(1)" }, { transform: "translateX(-34%) scaleX(.82)", offset: .28 }, { transform: "translateX(6%) scaleX(1)", offset: .7 }, { transform: "translateX(0) scaleX(1)" }], { duration: 460, easing: "cubic-bezier(.2,.8,.3,1)" });
+    watch.animate([{ transform: "translateX(0)" }, { transform: "translateX(-1.6%)", offset: .28 }, { transform: "translateX(.4%)", offset: .7 }, { transform: "translateX(0)" }], { duration: 460, easing: "cubic-bezier(.2,.8,.3,1)" });
+    crownBtn.animate([{ opacity: .9, transform: "scale(.35)" }, { opacity: 0, transform: "scale(1.9)" }], { duration: 560, easing: "ease-out", pseudoElement: "::after" });
+  };
+
+  el.addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b || b.matches("[data-copy]")) return;
+    if (b.matches("[data-simulate]") || b.dataset.act === "screen" || b.dataset.act === "comp") play(started ? (index + 1) % cases.length : 0);
+    else if (b.matches("[data-play-case]")) play(+b.dataset.playCase);
+    else if (b.matches("[data-play-agent]")) play(agents[b.dataset.playAgent].play, b.dataset.playAgent);
+    else if (b.dataset.act === "crown") pressCrown();
   });
-}, { threshold: 0.1 });
-document.querySelectorAll("[data-watch-scene], [data-motion], [data-loop]").forEach((el) => sceneIO.observe(el));
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) {
-    loops.forEach((loop) => loop.stop());
-    document.querySelectorAll(".motion-visible").forEach((el) => el.classList.remove("motion-visible"));
-  } else document.querySelectorAll("[data-watch-scene], [data-motion], [data-loop]").forEach((el) => { sceneIO.unobserve(el); sceneIO.observe(el); });
-});
+  q("[data-agent-status]").setAttribute("role", "status");
+  q(".tapscr").setAttribute("aria-label", copy.simulate);
+  crownBtn.setAttribute("aria-label", zh ? "按下表冠" : "Press the Digital Crown");
+
+  layout();
+  new ResizeObserver(layout).observe(stage);
+  document.fonts?.ready.then(layout);
+  const settle = () => { if (playing) { stop(); finish(); } else running.forEach((a) => a.cancel()); };
+  new IntersectionObserver(([e]) => {
+    inView = e.isIntersecting;
+    if (!inView) settle();
+    else if (!started && !reduce && !document.hidden) play(0);
+  }, { threshold: .3 }).observe(stage);
+  document.addEventListener("visibilitychange", () => { if (document.hidden) settle(); });
+  if (reduce) { showWatch("app"); watch.dataset.rec = "1"; }
+}
 
 /* Shared prompt, command and configuration copying, including a selected-text fallback. */
 document.addEventListener("click", async (e) => {

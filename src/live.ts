@@ -9,7 +9,8 @@ type Lang = "zh" | "en";
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
 function pic(src: string, alt: string, cls: string, lazy = true) {
-  return `<picture class="${cls}"><source type="image/webp" srcset="${src}.webp"><img src="${src}.png" alt="${alt}" width="${src.includes("bezels") ? 560 : 416}" height="${src.includes("bezels") ? 880 : 496}" decoding="async"${lazy ? ' loading="lazy"' : ""}></picture>`;
+  const [w,h] = src.includes("watch-crown") ? [34,104] : src.includes("bezels") ? [560,880] : [416,496];
+  return `<picture class="${cls}"><source type="image/webp" srcset="${src}.webp"><img src="${src}.png" alt="${alt}" width="${w}" height="${h}" decoding="async"${lazy ? ' loading="lazy"' : ""}></picture>`;
 }
 
 const MIC = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M6 11a6 6 0 0 0 12 0M12 17v3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
@@ -18,9 +19,9 @@ const MIC = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width
 function face(zh: boolean, interactive: boolean) {
   return `<div class="wface">
 <span class="wmic">${MIC}</span>
-<span class="fdate">${zh ? "周四 27" : "THU 27"}</span>
+<span class="fdate">${zh ? "周六 28" : "SAT 28"}</span>
 <span class="ftime">10:09</span>
-<${interactive ? 'button type="button"' : "span"} class="fcomp"${interactive ? ' data-act="comp" aria-label="Phemo"' : ""}><svg data-mark data-state="speak" data-weight="1.25" viewBox="0 0 120 120"></svg></${interactive ? "button" : "span"}>
+<${interactive ? 'button type="button"' : "span"} class="fcomp"${interactive ? ' data-act="comp" aria-label="Phemo"' : ""}><svg data-mark data-state="${interactive ? "still" : "speak"}" data-weight="1.25" viewBox="0 0 120 120"></svg></${interactive ? "button" : "span"}>
 <span class="fcap"><i class="rec">${zh ? "Phemo · 录音中" : "Phemo · Recording"}</i><i class="idle">Phemo</i></span>
 </div>`;
 }
@@ -34,15 +35,15 @@ export function liveWatch(lang: Lang, opts: { lazy?: boolean; interactive?: bool
   const zh = lang === "zh";
   const lazy = opts.lazy ?? false;
   const alt = zh ? "Apple Watch 上的 Phemo：正在录制说话，已录 2 小时 13 分，2 个标记" : "Phemo on Apple Watch: recording speech, 2 h 13 min, 2 marks";
-  const bezel = "/bezels/watch-s11-46-natural";
+  const bezel = opts.interactive ? "/bezels/watch-s11-46-natural-nocrown" : "/bezels/watch-s11-46-natural";
   const extra = opts.interactive
-    ? `<button type="button" class="crown" data-act="crown" aria-label="${zh ? "按表冠回到表盘" : "Press the Digital Crown to return to the watch face"}"></button><span class="watch-hint" data-hint aria-live="polite"></span><span class="flag" role="status" data-message="⚑ ${zh ? "已标记" : "Marked"}"></span>`
+    ? `<button type="button" class="crown" data-act="crown" aria-label="${zh ? "按表冠回到表盘" : "Press the Digital Crown to return to the watch face"}">${pic("/bezels/watch-crown", "", "cimg", lazy)}</button><span class="watch-hint" data-hint aria-live="polite"></span><span class="flag" role="status" data-message="⚑ ${zh ? "已标记" : "Marked"}"></span>`
     : "";
   const screen = opts.interactive ? `<button type="button" class="tapscr" data-act="screen" aria-label="${zh ? "轻点标记" : "Tap to mark"}"></button>` : "";
   return `<figure class="dev watch live" data-state="${opts.interactive ? "face" : "app"}" data-rec="${opts.interactive ? "0" : "1"}"${opts.interactive ? " data-watch" : ""}>
 <div class="scrwrap">
 ${face(zh, !!opts.interactive)}
-<div class="wapp"${opts.interactive ? ' inert aria-hidden="true"' : ""}>${pic(`/screens/watch-rec-nomark-${lang}`, alt, "scr", lazy)}<svg class="wmark2" data-mark data-state="speak" data-weight="1.15" viewBox="0 0 120 120" aria-hidden="true"></svg>${screen}</div>
+<div class="wapp"${opts.interactive ? ' inert aria-hidden="true"' : ""}>${pic(`/screens/watch-rec-nomark-${lang}`, alt, "scr", lazy)}<svg class="wmark2" data-mark${opts.interactive ? ' data-role="watch-mark"' : ""} data-state="${opts.interactive ? "still" : "speak"}" data-weight="1.15" viewBox="0 0 120 120" aria-hidden="true"></svg>${screen}</div>
 </div>
 ${pic(bezel, "", "bez", lazy)}${extra}
 </figure>`;

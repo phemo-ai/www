@@ -1,107 +1,135 @@
-/** Flat home scenes. Device artwork stays fixed; only screen content and adjacent marks animate. */
+/**
+ * The home hero: one figure that plays a spoken line from the Apple Watch, through the user's own iCloud,
+ * to the iPhone (transcript) and on to their own agent, ending in a finished result.
+ * Rendered in its final state (works without JavaScript); site-client/main.mjs replays it on demand.
+ */
 import { AGENTS, agentMark } from "./agents";
 import { liveWatch } from "./live";
+import { USE_CASES, preview } from "./usecases";
 
 type Lang = "zh" | "en";
+const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
-const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-const pic = (src: string, alt: string, cls: string) => {
-  const [w, h] = src.includes("iphone-17") ? [600, 1227] : src.includes("iphone-today") ? [540, 1173] : src.includes("ipad") ? [1320, 940] : [1700, 1120];
-  return `<picture class="${cls}"><source type="image/webp" srcset="${src}.webp"><img src="${src}.png" alt="${alt}" width="${w}" height="${h}" decoding="async"></picture>`;
-};
+const FILE = "2026-11-28.md";
 
-interface Copy {
-  tag: string; sub: string; soon: string; fine: string;
-  phoneAlt: string; cloud: string; cloudSub: string; tree: string[];
-  doc: { title: string; label: string; headings: string[]; summary: string; highlights: string[]; todos: string[]; transcript: [string, string][] };
-  term: string[]; agentsLabel: string;
-  panels: [string, string][];
-  hints: string[];
-}
-
-const COPY: Record<Lang, Copy> = {
+const COPY = {
   zh: {
-    tag: "说过的话，<br>留在你的 iCloud，<br>交给你的 agent。",
-    sub: "手表录音，iPhone 本地转写，你的 agent 直接读取。没有服务器，没有账号，免费使用。",
-    soon: "即将上架 App Store",
-    fine: "没有 Phemo 服务器，没有账号。",
-    phoneAlt: "iPhone 上的 Phemo：今天的标记、总结、要点和待办",
-    cloud: "你的 iCloud", cloudSub: "只在你的 Apple 账户里",
-    tree: ["iCloud 云盘 › Phemo", "  2026 › 11 › 2026-11-27.md", "  todos.md"],
-    doc: {
-      title: "2026-11-27", label: "当天的 Markdown 文件，可滚动阅读", headings: ["Summary", "Highlights", "To-dos", "Transcript"],
-      summary: "上午确认新版上线范围，下午与客户敲定方案和报价，周五交付。",
-      highlights: ["新版先上线录音与本地转写", "客户确认 12 月启动试点"],
-      todos: ["周五前发方案与报价", "明天和设计组确认文案"],
-      transcript: [["09:15", "新版先把录音和本地转写做好。"], ["14:32", "周五前给我们一版报价和方案。"], ["17:10", "明天一起过一下新手引导文案。"]],
-    },
-    term: ["14:32 · 周五前给我们一版报价和方案。", "proposal.docx", "quote.xlsx", "跟进邮件草稿 · 方案与报价已附上"],
-    agentsLabel: "可以连接的 agent",
-    hints: ["试试：点一下表盘上的 Phemo", "轻点屏幕标记，按表冠返回", "按一下表冠，回到表盘", "录音还在继续。再点 Phemo 就回来"],
-    panels: [["手表录音，iPhone 本地转写", "放下手腕回到表盘，录音继续；说完一段，iPhone 在本地转成文字。支持的 iPhone 可用 Apple 智能整理；中国区版本可连接 agent。"], ["存进你自己的 iCloud", "内容只在你的 Apple 账户里。"], ["同一份笔记，出现在你的 iPad 和 Mac 上", "每天一个 Markdown 文件，放在 iCloud 云盘。示例含 Apple 智能总结；中国区版本可让 agent 总结原话。"], ["你的 agent 接手", "你的 agent 读取原话，用它已有的工具完成交付。"]],
+    h1: ["说一句，", "你的 agent 就去办。"],
+    sub: "手表听见，iPhone 本地转写，原话只进你自己的 iCloud；你常用的 agent 读到后直接交付成果。",
+    soon: "即将上架 App Store", fine: "无 Phemo 服务器 · 无账号 · 免费",
+    label: "从说一句话到拿到成果的演示",
+    steps: ["手表录音", "iPhone 本地转写", "你的 agent 交付"],
+    simulate: "模拟说一段话", again: "再说一段", hint: "轻点表盘也能开始 · 表冠可以按",
+    today: "今天", date: "11 月 28 日 · 周六", live: "手表录音中", volatile: "正在转写…", final: "已定稿",
+    saved: "已存入 iCloud", old: [["09:12", "周会改到下午三点，会议室我来订。"], ["08:40", "记得给车续保险。"]],
+    cloud: "你的 iCloud", account: "只在你的账户里", drive: "iCloud 云盘", daily: "每天一份 Markdown", syncing: "同步中…", synced: "已同步",
+    connect: ["", "连接方法"], ask: "你对它说", sample: "示意",
+    wait: "等你说完…", reading: `正在读取 ${FILE}…`, working: "正在完成工作…", done: "交付已备好",
+    copy: "复制", cases: "换个场景", wall: "22 个 agent 都能接，点一个试试", play: "播放",
   },
   en: {
-    tag: "What you said.<br>In your iCloud.<br>For your agent.",
-    sub: "Your watch records, your iPhone transcribes on device, your agent reads it. No server, no account. Free to use.",
-    soon: "Coming to the App Store",
-    fine: "No Phemo server. No account.",
-    phoneAlt: "Phemo on iPhone: today's marks, summary, highlights and to-dos",
-    cloud: "Your iCloud", cloudSub: "Only in your Apple Account",
-    tree: ["iCloud Drive › Phemo", "  2026 › 11 › 2026-11-27.md", "  todos.md"],
-    doc: {
-      title: "2026-11-27", label: "Daily Markdown file, scroll to read", headings: ["Summary", "Highlights", "To-dos", "Transcript"],
-      summary: "Agreed the release scope and a December pilot. Proposal and quote due Friday.",
-      highlights: ["Record + transcribe on device", "December client pilot"],
-      todos: ["Send proposal + quote · Fri", "Review app copy · Sat"],
-      transcript: [["09:15", "Ship recording and transcription first."], ["14:32", "Proposal and quote by Friday, please."], ["17:10", "Review the onboarding copy tomorrow."]],
-    },
-    term: ["14:32 · Send us a proposal and a quote by Friday.", "proposal.docx", "quote.xlsx", "Follow-up email draft · Files attached"],
-    agentsLabel: "Agents you can connect",
-    hints: ["Try it: tap Phemo on the watch face", "Tap to mark; press the crown to return", "Press the crown to go back to your face", "Still recording. Tap Phemo to come back"],
-    panels: [["Your watch records, your iPhone transcribes", "Lower your wrist and recording carries on; each chunk is transcribed on your iPhone. Apple Intelligence can organise it on supported iPhones; connect your agent in the China storefront."], ["Kept in your own iCloud", "Only in your Apple Account."], ["The same notes on your iPad and Mac", "One Markdown file a day in iCloud Drive. Example with Apple Intelligence summaries; in the China storefront, your agent summarises the transcript."], ["Your agent takes over", "Your agent reads what was said and uses its tools to deliver."]],
+    h1: ["Say it once. ", "Your agent gets it done."],
+    sub: "Your Watch hears it. Your iPhone transcribes on device, into your own iCloud. The agent you already use does the work.",
+    soon: "Coming to the App Store", fine: "No Phemo server · No account · Free",
+    label: "Demo: from a spoken line to a finished result",
+    steps: ["Watch records", "iPhone transcribes on device", "Your agent delivers"],
+    simulate: "Simulate speaking", again: "Say another", hint: "Tap the watch · Press the crown",
+    today: "Today", date: "Sat, Nov 28", live: "Recording on Watch", volatile: "Transcribing…", final: "Final",
+    saved: "Saved to iCloud", old: [["09:12", "Move the weekly sync to three, I'll book the room."], ["08:40", "Remember to renew the car insurance."]],
+    cloud: "Your iCloud", account: "Only in your account", drive: "iCloud Drive", daily: "One Markdown file a day", syncing: "Syncing…", synced: "Synced",
+    connect: ["How to ", "connect"], ask: "You ask", sample: "Example",
+    wait: "Waiting for you…", reading: `Reading ${FILE}…`, working: "Working…", done: "Ready for review",
+    copy: "Copy", cases: "Try another", wall: "Works with 22 agents. Tap one.", play: "Play",
   },
 };
 
-const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>';
+/** Short names for the eight outcomes (USE_CASES order). */
+const SHORT: Record<string, [string, string]> = {
+  proposal: ["方案报价", "Proposal"], bugfix: ["修 bug", "Bug fix"], crm: ["更新 CRM", "CRM"], research: ["研究报告", "Research"],
+  doctor: ["就诊清单", "Care plan"], lecture: ["课堂笔记", "Study kit"], family: ["家庭安排", "Family"], weekly: ["周报", "Weekly"],
+};
+/** The agent that performs each outcome by default, per language. */
+const CASE_AGENT: Record<Lang, string[]> = {
+  zh: ["workbuddy", "trae", "workbuddy", "kimi-code", "cherry-studio", "qwen-code", "workbuddy", "codebuddy"],
+  en: ["claude-desktop", "claude-code", "goose", "codex", "lm-studio", "gemini-cli", "claude-desktop", "cursor"],
+};
+/** The outcome each agent plays when its icon is pressed. */
+const AGENT_CASE: Record<string, string> = {
+  "claude-code": "bugfix", "claude-desktop": "proposal", codex: "research", cursor: "weekly", vscode: "bugfix", windsurf: "bugfix",
+  "gemini-cli": "lecture", zed: "bugfix", cline: "research", kiro: "proposal", goose: "crm", "lm-studio": "doctor", jetbrains: "bugfix",
+  workbuddy: "proposal", codebuddy: "weekly", trae: "bugfix", qoder: "bugfix", "kimi-code": "research", "qwen-code": "lecture",
+  iflow: "family", "cherry-studio": "doctor", comate: "bugfix",
+};
 
-function doc(c: Copy, cls: string) {
-  const d = c.doc;
-  const heading = (i: number) => `<h5>## ${esc(d.headings[i]!)}</h5>`;
-  return `<div class="docscr ${cls}"><div class="dbar">${esc(d.title)}.md<span aria-hidden="true">↕</span></div><div class="dpage" tabindex="0" role="region" aria-label="${esc(d.label)}"><h4># ${esc(d.title)}</h4>${heading(0)}<p class="day-summary">${esc(d.summary)}</p><div class="day-sections"><section>${heading(1)}<ul>${d.highlights.map(t => `<li>${esc(t)}</li>`).join("")}</ul></section><section>${heading(2)}<ul class="day-todos">${d.todos.map(t => `<li><span aria-hidden="true"></span> ${esc(t)}</li>`).join("")}</ul></section></div>${heading(3)}<ul class="day-transcript">${d.transcript.map(([time, text]) => `<li><time>${time}</time><span>${esc(text)}</span></li>`).join("")}</ul></div></div>`;
-}
-
-function iphone(lang: Lang, c: Copy) {
-  return `<figure class="dev iphone sc-phone"><div class="scr">${pic(`/screens/iphone-today2-${lang}`, c.phoneAlt, "simg")}</div>${pic("/bezels/iphone-17-pro-silver", "", "bez")}</figure>`;
-}
-const ipad = (c: Copy) => `<figure class="dev ipadf"><div class="scr">${doc(c, "on-ipad")}</div>${pic("/bezels/ipad-pro-11-silver", "", "bez")}</figure>`;
-const mac = (c: Copy) => `<figure class="dev macf"><div class="scr">${doc(c, "on-mac")}</div>${pic("/bezels/macbook-air-13-silver", "", "bez")}</figure>`;
-
-function agentCard(c: Copy, lang: Lang) {
-  const agents = AGENTS.filter((a) => lang === "en" || a.group === "cn");
-  const rot = agents.map((a, i) => `<span class="an${i === 0 ? " is-on" : ""}" data-agent="${a.id}">${agentMark(a.id, 20)}<b>${esc(a.name)}</b></span>`).join("");
-  return `<div class="acard"><div class="atitle">${rot}</div><div class="aterm"><p class="source-line">“${esc(c.term[0]!) }”</p><div class="agent-files"><span><i>W</i>${c.term[1]}</span><span><i>X</i>${c.term[2]}</span></div><p class="email-result"><span aria-hidden="true">↗</span> ${esc(c.term[3]!)}</p></div></div>`;
-}
-function agentStrip(c: Copy, lang: Lang) {
-  return `<div class="astrip" aria-label="${esc(c.agentsLabel)}">${AGENTS.filter((a) => lang === "en" || a.group === "cn").map((a) => `<a class="as" href="${lang === "zh" ? "/agents" : "/en/agents"}#${a.id}" data-agent="${a.id}">${agentMark(a.id, 18)}<i>${esc(a.name)}</i></a>`).join("")}</div>`;
-}
-
-function echo(cls: string) {
-  return `<svg class="echo ${cls}" viewBox="0 0 120 120" aria-hidden="true"><path d="M60 26v68"/><path class="e1" d="M44 40q-10 20 0 40"/><path class="e1" d="M76 40q10 20 0 40"/><path class="e2" d="M32 30q-17 30 0 60"/><path class="e2" d="M88 30q17 30 0 60"/></svg>`;
-}
+const CLOUD = '<svg viewBox="0 0 64 44" aria-hidden="true"><path d="M17 38a13 13 0 0 1-2-26 18 18 0 0 1 34-1 14 14 0 0 1-1 27Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M28 25v-3a4 4 0 0 1 8 0v3m-9.5 0h11v8.5h-11Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>';
+const MIC = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M6 11a6 6 0 0 0 12 0M12 17v3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
+const bars = (n: number) => Array.from({ length: n }, (_, i) => `<i style="--i:${i};--h:${35 + ((i * 37) % 65)}%"></i>`).join("");
 
 export function scene(lang: Lang) {
-  const c = COPY[lang];
-  const P = c.panels;
-  const intro = `<div class="sc-intro"><h1>${c.tag}</h1><p class="sub">${esc(c.sub)}</p><span class="pill">${c.soon}</span></div>`;
-  const cloud = `<div class="cloudmark" data-motion><span class="ring"></span><span class="lk">${LOCK}</span><b>${c.cloud}</b><small>${c.cloudSub}</small><pre class="tree">${c.tree.map((t, i) => `<span style="--i:${i}">${esc(t)}</span>`).join("\n")}</pre></div>`;
-  // One flat page: every part is on it at once; each part's animation loops in place while it is in view.
-  return `<section class="scene" aria-label="${lang === "zh" ? "Phemo 如何工作" : "How Phemo works"}">
-<div class="row r1"><div class="wrap r1g">${intro}<div class="pair1" data-watch-scene data-hints="${esc(JSON.stringify(c.hints))}">${liveWatch(lang, { lazy: false, interactive: true })}<div class="gap">${echo("g1")}</div>${iphone(lang, c)}</div></div>
-<p class="rcap"><b>${P[0]![0]}</b><span>${P[0]![1]}</span></p></div>
-<div class="row r2"><div class="wrap">${cloud}<p class="rcap"><b>${P[1]![0]}</b><span>${P[1]![1]}</span></p></div></div>
-<div class="row r3"><div class="wrap"><div class="pair2" >${ipad(c)}${mac(c)}</div>
-<p class="rcap"><b>${P[2]![0]}</b><span>${P[2]![1]}</span></p></div></div>
-<div class="row r4"><div class="wrap"><div class="pair3" data-loop="agent">${agentCard(c, lang)}<p class="rcap side"><b>${P[3]![0]}</b><span>${P[3]![1]}</span></p></div>${agentStrip(c, lang)}
-<p class="fine">${c.fine}</p></div></div>
+  const c = COPY[lang], l = lang === "zh" ? 0 : 1;
+  const agentsHref = lang === "zh" ? "/agents" : "/en/agents";
+  const name = (id: string) => AGENTS.find((a) => a.id === id)!.name;
+  const cases = USE_CASES.map((u, i) => ({
+    id: u.id, title: u.title[l]!, short: SHORT[u.id]![l]!, time: u.time[l]!, line: u.line[l]!, prompt: u.prompt[l]!,
+    agent: CASE_AGENT[lang][i]!, deliverable: preview(u.id, lang),
+  }));
+  const first = cases[0]!;
+  // The reader's own market first.
+  const wall = [...AGENTS].sort((a, b) => Number(a.group !== (lang === "zh" ? "cn" : "intl")) - Number(b.group !== (lang === "zh" ? "cn" : "intl")));
+  const step = (n: number) => `<p class="step"><i>${n + 1}</i>${c.steps[n]}</p>`;
+  const data = {
+    cases,
+    agents: Object.fromEntries(AGENTS.map((a) => [a.id, { name: a.name, mark: agentMark(a.id, 24), dark: a.id === "lm-studio", play: USE_CASES.findIndex((u) => u.id === AGENT_CASE[a.id]) }])),
+    href: agentsHref,
+    copy: { simulate: c.simulate, again: c.again, volatile: c.volatile, final: c.final, syncing: c.syncing, synced: c.synced, wait: c.wait, reading: c.reading, working: c.working, done: c.done },
+  };
+
+  return `<section class="journey s-heard s-saved s-asked s-done" data-journey data-stage="done" aria-label="${c.label}">
+<div class="j-head">
+<div><h1>${c.h1.map((p) => `<span>${p}</span>`).join("")}</h1><p class="j-sub">${c.sub}</p></div>
+<div class="j-cta"><span class="pill store">${c.soon}</span><small>${c.fine}</small></div>
+</div>
+<div class="stage">
+<svg class="rails" aria-hidden="true">${[0, 1, 2, 3].map((i) => `<path class="rail" data-rail="${i}"/><path class="rail-on is-on" data-rail-on="${i}" pathLength="1"/>`).join("")}<g data-packets></g></svg>
+
+<div class="st st-watch">${step(0)}<div class="st-body">
+<div class="bubble"><div class="bubble-top"><time data-spoken-time>${esc(first.time)}</time><span class="bars" aria-hidden="true">${bars(14)}</span></div><p data-spoken>${esc(first.line)}</p></div>
+<div class="wdev"><div data-anchor="watch">${liveWatch(lang, { interactive: true })}</div>
+<button class="simulate" type="button" data-simulate>${MIC}<span data-simulate-label>${c.simulate}</span></button>
+<p class="st-hint">${c.hint}</p></div>
+</div></div>
+
+<div class="st st-cloud"><div class="st-body">
+<div class="cloud"><div class="cloud-disc" data-anchor="cloud">${CLOUD}</div>
+<div class="cloud-text"><b>${c.cloud}</b><small>${c.account}</small><span class="cloud-sync" data-cloud-status>${c.synced}</span></div></div>
+</div></div>
+
+<div class="st st-phone">${step(1)}<div class="st-body">
+<figure class="dev iphone" data-anchor="phone"><div class="scr"><div class="pui">
+<div class="pui-status" aria-hidden="true"><span>9:41</span><span class="pui-batt"></span></div>
+<header><b>${c.today}</b><span>${c.date}</span></header>
+<div class="pui-live"><svg data-mark data-role="phone-mark" data-state="still" data-weight="1.3" viewBox="0 0 120 120" aria-hidden="true"></svg><span>${c.live}</span><span class="bars" aria-hidden="true">${bars(9)}</span></div>
+<article class="pui-entry pui-now"><div class="pui-meta"><time data-phone-time>${esc(first.time)}</time><span data-transcript-status>${c.final}</span></div><p data-phone-text>${esc(first.line)}</p></article>
+${c.old.map(([t, s]) => `<article class="pui-entry"><div class="pui-meta"><time>${t}</time></div><p>${esc(s!)}</p></article>`).join("")}
+<div class="pui-saved"><span class="pui-tick" aria-hidden="true">✓</span>${c.saved}<code>${FILE}</code></div>
+<div class="pui-home" aria-hidden="true"></div>
+</div></div><picture class="bez"><source type="image/webp" srcset="/bezels/iphone-17-pro-silver.webp"><img src="/bezels/iphone-17-pro-silver.png" alt="" width="600" height="1227" decoding="async"></picture></figure>
+</div></div>
+
+<div class="st st-file"><div class="st-body">
+<div class="file"><span class="cloud-file" data-anchor="file">${CLOUD}<code>${FILE}</code></span><small><span>${c.drive}</span><span>${c.daily}</span></small></div>
+</div></div>
+
+<div class="st st-agent">${step(2)}<div class="st-body">
+<div class="panel" data-anchor="agent">
+<header class="pa-head"><span class="tile" data-active-mark>${agentMark(first.agent, 24)}</span><div><b data-active-agent>${esc(name(first.agent))}</b><span class="pa-status" data-agent-status>${c.done}</span></div><a href="${agentsHref}#${first.agent}" data-active-link><span class="pa-long">${c.connect[0]}${c.connect[1]}</span><span class="pa-short">${c.connect[1]!.replace(/^c/, "C")}</span> <span aria-hidden="true">↗</span></a></header>
+<div class="pa-ask"><button class="copy" type="button" data-copy="${esc(first.prompt)}">${c.copy}</button><p data-prompt><span class="pa-tag">${c.ask}</span><span data-prompt-text>${esc(first.prompt)}</span></p></div>
+<div class="pa-result"><div class="pa-result-top"><h2 data-case-title>${esc(first.title)}</h2><span>${c.sample}</span></div><div class="pa-skel" aria-hidden="true"><i></i><i></i><i></i></div><div class="pa-result-body" data-deliverable>${first.deliverable}</div></div>
+<nav class="pa-cases" aria-label="${c.cases}">${cases.map((u, i) => `<button type="button" data-play-case="${i}" title="${esc(u.title)}" aria-pressed="${i === 0}">${esc(u.short)}</button>`).join("")}</nav>
+<div class="pa-wall"><p>${c.wall}</p><div class="wall">${wall.map((a) => `<button type="button" class="tile${a.id === "lm-studio" ? " dark" : ""}" data-play-agent="${a.id}" title="${esc(a.name)}" aria-label="${c.play}: ${esc(a.name)}" aria-pressed="${a.id === first.agent}">${agentMark(a.id, 24)}</button>`).join("")}</div></div>
+</div>
+</div></div>
+</div>
+<script type="application/json" data-journey-data>${JSON.stringify(data).replace(/</g, "\\u003c")}</script>
 </section>`;
 }

@@ -15,8 +15,8 @@ const FILE = "2026-11-28.md";
 
 const COPY = {
   zh: {
-    h1: ["你说了一整天，", "你的 agent 把事办完。"],
-    sub: "Apple Watch 全天录音，iPhone 本地转写，只存进你自己的 iCloud；你已经在用的 agent 读得到每一天。",
+    h1: ["一日万言，", "句句有着落。"],
+    sub: "Apple Watch 从早录到晚，iPhone 本地转写，只存进你自己的 iCloud；你已经在用的 agent 读得到每一天，把事办完。",
     soon: "即将上架 App Store", fine: "无 Phemo 服务器 · 无账号 · 免费",
     label: "从一整天的录音到拿到成果的演示",
     simulate: "模拟说一段话", again: "再说一段", hint: "轻点表盘也能开始 · 表冠可以按",
@@ -31,8 +31,8 @@ const COPY = {
     copy: "复制", cases: "换个场景", wall: "22 个 agent 都能接，点一个试试", play: "播放",
   },
   en: {
-    h1: ["You talk all day. ", "Your agent gets it done."],
-    sub: "Apple Watch records all day. iPhone transcribes on device, into your own iCloud. The agent you already use reads every day.",
+    h1: ["Every word you say, ", "put to work."],
+    sub: "Apple Watch records morning to night. iPhone transcribes on device, into your own iCloud. Your own agent does the rest.",
     soon: "Coming to the App Store", fine: "No Phemo server · No account · Free",
     label: "Demo: from a whole recorded day to a finished result",
     simulate: "Simulate speaking", again: "Say another", hint: "Tap the watch · Press the crown",

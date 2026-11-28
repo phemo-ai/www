@@ -24,7 +24,7 @@ p{margin:0}
 .top .wrap{display:flex;align-items:center;justify-content:space-between;height:68px;max-width:none}
 .brand{display:flex;align-items:center;gap:8px;text-decoration:none;font-weight:400;font-size:19px;letter-spacing:-.01em}
 .brand svg{width:26px;height:26px;color:var(--ink)}
-.brand .wordmark{width:auto;height:35px;margin:1px 0 0 -3px;fill:currentColor;stroke:currentColor;stroke-width:.9;stroke-linejoin:round;overflow:visible}
+.brand .wordmark{width:auto;height:37px;margin:2px 0 0 -3px;fill:currentColor;stroke:currentColor;stroke-width:.9;stroke-linejoin:round;overflow:visible}
 .nav{display:flex;align-items:center;gap:clamp(14px,2.4vw,30px);font-size:14px}
 .nav a{text-decoration:none;color:var(--ink2)}
 .nav a:hover,.nav a[aria-current]{color:var(--ink)}
@@ -597,7 +597,7 @@ details p{padding:0 0 20px}
 .bubble p{margin:0;font-size:15px;line-height:1.4;min-height:2.8em}
 :lang(en) .bubble p{min-height:2.8em}
 .simulate{min-height:40px;padding:8px 14px 8px 10px;font-size:14px;white-space:nowrap}
-.brand .wordmark{height:30px}
+.brand .wordmark{height:32px}
 .cloud-disc{width:46px;height:46px}
 .day-top{font-size:13px;white-space:normal}.day-top p{gap:2px 8px;flex-wrap:wrap}.day-top p>b{font-size:15px}
 .day-lib{display:none!important}

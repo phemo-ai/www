@@ -33,7 +33,8 @@ the data is stored, and no affiliation or endorsement is claimed.
 
 ## Wordmark
 
-`src/wordmark.ts` — "phemo" set in La Belle Aurore by Kimberly Geswein (SIL Open Font License 1.1,
+`src/wordmark.ts` — the first letter is a lowercase Greek φ drawn for Phemo as a single pen stroke (our own
+drawing); "hemo" is set in La Belle Aurore by Kimberly Geswein (SIL Open Font License 1.1,
 https://github.com/google/fonts/tree/main/ofl/labelleaurore), converted to outlines. No font file is served.
 At the owner's explicit request, the hero restores the separate crown and crownless-watch assets
 from 2235e6a. Only the separate crown and screen feedback animate. This crown edit is a conscious

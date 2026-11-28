@@ -115,13 +115,13 @@ const HOME: Record<Lang, HomeCopy> = {
     ],
   },
   en: {
-    title: "Phemo · All-day recording on Apple Watch that keeps only what was said",
+    title: "Phemo · Always-on recording on Apple Watch that keeps only what was said",
     description: "Wear it and it records, with your watch face as usual. Speech only, transcribed on your iPhone and stored in your own iCloud for your agent.",
     featH: "What it does",
     features: [
       { title: "One tap, your watch face stays", text: "Tap Phemo on your watch face to start; lower your wrist and it's still your face.", visual: watch("watch-face-en", "The Phemo complication on a watch face, with the microphone indicator at the top") },
       { title: "Tap to mark, hold to stop", text: "Tap the watch when something matters; a flag lands on the iPhone timeline and that part is looked at first.", visual: liveWatch("en") },
-      { title: "Speech only, all day", text: "The watch decides whether anyone is talking and does nothing in silence.", visual: dayTimeline(false) },
+      { title: "Speech only, morning to night", text: "The watch decides whether anyone is talking and does nothing in silence.", visual: dayTimeline(false) },
       { title: "Picks up again after calls", text: "After a call or Siri it resumes on its own, and taps your wrist if it can't.", visual: callStrip(false) },
       { title: "Highlights and to-dos, daily", text: "Apple Intelligence organises these on supported iPhones. Without it, or in the China storefront, connect your agent to summarise the Markdown.", visual: todosCard(false) },
       { title: "Plugs into your agent", text: "Claude, Codex, Cursor or WorkBuddy reads each day's Markdown through a skill or MCP, to look back and follow up.", visual: agentViz(false) },

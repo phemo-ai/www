@@ -1,4 +1,4 @@
-// Website behaviour: the animated Echo marks, the live watch (crown press → watch face), the data-path animation,
+// Website behaviour: the animated Echo marks, the home hero (a recorded day: Watch → iCloud → iPhone → library → agent), copy buttons,
 // and the header backdrop on scroll. Bundled into dist/site.js by build.mjs (mark geometry from brand/phemo-mark.mjs).
 import { frame } from "../brand/phemo-mark.mjs";
 document.documentElement.classList.remove("no-js");
@@ -24,6 +24,8 @@ class Mark {
     this.start = now();
   }
   draw(t) {
+    if (this.drawn && this.state === "still" && !this.cycle.length) return;
+    this.drawn = true;
     let state = this.state, since = t - this.start;
     if (this.cycle.length) {
       const total = this.cycle.reduce((a, [, d]) => a + d, 0);
@@ -65,114 +67,216 @@ const onScroll = () => document.documentElement.classList.toggle("scrolled", scr
 addEventListener("scroll", onScroll, { passive: true });
 onScroll();
 
-/* Live watch: pressing the crown goes to the watch face; recording carries on (the complication keeps speaking). */
-const setFace = (fig, on) => { fig.dataset.state = on ? "face" : "app"; };
-const press = (fig) => { fig.classList.add("press"); setTimeout(() => fig.classList.remove("press"), 170); };
-
-/*
- * The data path scene. Steps: press the crown → face; audio token watch → iCloud → iPhone; waveform → text → to-dos;
- * Markdown token iPhone → iCloud Drive → agent; agent acts. Loops while on screen. Token paths are measured from
- * the laid-out nodes, so the same code works for the row (desktop) and the column (phone) layouts.
- */
-const stage = document.querySelector("[data-stage]");
-if (stage) {
-  const chainEl = stage.closest("[data-chain]");
-  const caps = JSON.parse(chainEl.dataset.caps || "[]");
-  const capEl = chainEl.querySelector("[data-cap]");
-  const watchEl = stage.querySelector("[data-watch]");
-  const tok = stage.querySelector(".tok");
-  const nodes = { watch: stage.querySelector(".n-watch"), cloud: stage.querySelector(".n-cloud"), phone: stage.querySelector(".n-phone"), mac: stage.querySelector(".n-mac") };
-  const anchor = { watch: watchEl.querySelector(".scrwrap"), cloud: stage.querySelector(".cloudbox"), phone: stage.querySelector(".phone2"), mac: stage.querySelector(".mac") };
-  const MODES = ["s-wave", "s-text", "s-todo", "s-agent"];
-  let timers = [], anims = [], onScreen = false;
-
-  const at = (ms, fn) => timers.push(setTimeout(fn, ms));
-  const cap = (i) => { if (capEl) capEl.textContent = caps[i] ?? ""; };
-  const on = (...names) => names.forEach((n) => nodes[n].classList.add("on"));
-  const mode = (...m) => stage.classList.add(...m);
-  const pulse = (n) => { nodes[n].classList.remove("pulse"); void nodes[n].offsetWidth; nodes[n].classList.add("pulse"); };
-  const center = (el) => {
-    const r = el.getBoundingClientRect(), s = stage.getBoundingClientRect();
-    return [r.left + r.width / 2 - s.left, r.top + r.height / 2 - s.top];
-  };
-  // One hop along a gentle arc (up in the row layout, sideways in the column layout).
-  const hop = (from, to, ms) => {
-    const [x0, y0] = center(anchor[from]), [x1, y1] = center(anchor[to]);
-    const row = Math.abs(x1 - x0) > Math.abs(y1 - y0);
-    const cx = (x0 + x1) / 2 + (row ? 0 : 46), cy = (y0 + y1) / 2 - (row ? 56 : 0);
-    const frames = [];
-    for (let k = 0; k <= 16; k++) {
-      const t = k / 16, u = 1 - t;
-      const x = u * u * x0 + 2 * u * t * cx + t * t * x1, y = u * u * y0 + 2 * u * t * cy + t * t * y1;
-      frames.push({ transform: `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(${(0.8 + 0.2 * Math.sin(Math.PI * t)).toFixed(3)})`, opacity: t < 0.08 || t > 0.94 ? 0 : 1 });
-    }
-    const a = tok.animate(frames, { duration: ms, easing: "cubic-bezier(.45,0,.35,1)", fill: "forwards" });
-    anims.push(a);
-    return a.finished.catch(() => {});
-  };
-  const travel = (path, kind) => {
-    tok.classList.toggle("doc", kind === "doc");
-    let p = Promise.resolve();
-    path.slice(1).forEach((to, k) => {
-      const from = path[k];
-      p = p.then(() => { if (from === "cloud") { on("cloud"); pulse("cloud"); } return hop(from, to, k === 0 ? 1000 : 900); });
-    });
-    return p;
-  };
-
-  const reset = () => {
+/* The home hero: one spoken line travels Watch → iPhone → iCloud → agent. Each press plays one finite run;
+   the markup is rendered in its final state, so without JavaScript (or with reduced motion) it reads complete. */
+for (const el of document.querySelectorAll("[data-journey]")) {
+  const { cases, agents, href, copy } = JSON.parse(el.querySelector("[data-journey-data]").textContent);
+  const q = (s) => el.querySelector(s), qa = (s) => [...el.querySelectorAll(s)];
+  const zh = document.documentElement.lang.startsWith("zh");
+  const stage = q(".stage"), packets = q("[data-packets]");
+  const watch = q("[data-watch]"), face = q(".wface"), app = q(".wapp"), crownBtn = q(".crown");
+  const FLAGS = ["s-heard", "s-saved", "s-asked", "s-done"];
+  const markOf = (role) => marks.find((m) => m.svg === q(`[data-role="${role}"]`));
+  const watchMark = markOf("watch-mark"), phoneMark = markOf("phone-mark");
+  const setMark = (m, state) => { if (!m) return; m.state = state; m.start = now(); m.drawn = false; m.draw(now()); };
+  let index = 0, agent = cases[0].agent, timers = [], started = false, inView = false, playing = false;
+  const running = new Set();
+  const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+  const stop = () => {
     timers.forEach(clearTimeout); timers = [];
-    anims.forEach((a) => a.cancel()); anims = [];
-    stage.classList.remove(...MODES);
-    Object.values(nodes).forEach((n) => n.classList.remove("on", "pulse"));
-    setFace(watchEl, false);
-    cap(0);
-  };
-  const play = (fromCrown = false) => {
-    reset();
-    const t0 = fromCrown ? 0 : 2600;
-    at(t0, () => { press(watchEl); setFace(watchEl, true); cap(1); });
-    at(t0 + 1300, () => { cap(2); travel(["watch", "cloud", "phone"], "audio"); });
-    at(t0 + 3400, () => { on("phone"); mode("s-wave"); cap(3); });
-    at(t0 + 5000, () => { mode("s-text"); cap(4); });
-    at(t0 + 7100, () => { mode("s-todo"); cap(5); });
-    at(t0 + 8700, () => { cap(6); travel(["phone", "cloud", "mac"], "doc"); });
-    at(t0 + 10700, () => { on("mac"); mode("s-agent"); cap(7); });
-    at(t0 + 14500, () => cap(8));
-    at(t0 + 18500, () => { if (onScreen) play(); });
+    running.forEach((a) => a.cancel()); running.clear();
+    packets.replaceChildren();
   };
 
-  if (reduce) {
-    Object.values(nodes).forEach((n) => n.classList.add("on"));
-    stage.classList.add("s-text", "s-todo", "s-agent");
-    const toggle = () => { press(watchEl); setFace(watchEl, watchEl.dataset.state !== "face"); };
-    watchEl.querySelector(".crown")?.addEventListener("click", toggle);
-    watchEl.querySelector(".scrwrap")?.addEventListener("click", toggle);
-  } else {
-    new IntersectionObserver(([e]) => {
-      const was = onScreen;
-      onScreen = e.isIntersecting;
-      if (onScreen && !was) play();
-      if (!onScreen) reset();
-    }, { threshold: 0.35 }).observe(stage);
-    const crownPress = () => {
-      if (watchEl.dataset.state === "face") { press(watchEl); reset(); at(6000, () => { if (onScreen) play(); }); }
-      else play(true);
+  const showWatch = (state) => {
+    const refocus = el.contains(document.activeElement) && (face.contains(document.activeElement) || app.contains(document.activeElement));
+    watch.dataset.state = state;
+    face.inert = state !== "face"; app.inert = state !== "app";
+    face.setAttribute("aria-hidden", String(state !== "face"));
+    app.setAttribute("aria-hidden", String(state !== "app"));
+    if (refocus) (state === "app" ? app : face).querySelector("button")?.focus({ preventScroll: true });
+  };
+
+  /* Rails join the anchors; they are measured, so they follow any layout (one row, or stacked on a phone). */
+  const rails = [0, 1, 2, 3].map((i) => [q(`[data-rail="${i}"]`), q(`[data-rail-on="${i}"]`)]);
+  const layout = () => {
+    const base = stage.getBoundingClientRect();
+    const box = (name) => {
+      const r = q(`[data-anchor="${name}"]`).getBoundingClientRect();
+      return { l: r.left - base.left, r: r.right - base.left, t: r.top - base.top, b: r.bottom - base.top, cx: r.left - base.left + r.width / 2, cy: r.top - base.top + r.height / 2, h: r.height };
     };
-    watchEl.querySelector(".crown")?.addEventListener("click", crownPress);
-    watchEl.querySelector(".scrwrap")?.addEventListener("click", crownPress);
-    chainEl.querySelector("[data-replay]")?.addEventListener("click", () => play());
-  }
+    const w = box("watch"), c = box("cloud"), p = box("phone"), f = box("lib"), a = box("agent");
+    const clamp = (y, o) => Math.min(Math.max(y, o.t + Math.min(40, o.h * .2)), o.b - Math.min(40, o.h * .2));
+    const h = (x1, y1, x2, y2) => { const dx = Math.max(6, (x2 - x1) * .5); return `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`; };
+    const v = (x1, y1, x2, y2) => { const dy = Math.max(3, (y2 - y1) * .5); return `M${x1},${y1} C${x1},${y1 + dy} ${x2},${y2 - dy} ${x2},${y2}`; };
+    const d = [h(w.r + 4, clamp(c.cy, w), c.l - 3, c.cy), h(c.r + 3, c.cy, p.l + 1, clamp(c.cy, p))];
+    if (f.l >= p.r - 1) d.push(h(p.r - 1, clamp(f.cy, p), f.l - 3, f.cy), h(f.r + 3, f.cy, a.l - 1, clamp(f.cy, a)));
+    else d.push(v(p.cx, p.b + 2, p.cx, f.t - 2), v(p.cx, f.b + 2, p.cx, a.t - 1));
+    rails.forEach(([dotted, solid], i) => { dotted.setAttribute("d", d[i]); solid.setAttribute("d", d[i]); });
+  };
+  const light = (i, on) => rails[i][1].classList.toggle("is-on", on);
+  const packet = (i, ms) => {
+    if (reduce || !inView || document.hidden) return;
+    const path = rails[i][0], length = path.getTotalLength();
+    if (!length) return;
+    const dot = document.createElementNS(NS, "circle");
+    dot.setAttribute("r", "3.5");
+    packets.appendChild(dot);
+    const n = 24;
+    const frames = Array.from({ length: n + 1 }, (_, k) => {
+      const pt = path.getPointAtLength(length * k / n);
+      return { transform: `translate(${pt.x}px,${pt.y}px)`, opacity: k === 0 || k === n ? 0 : 1 };
+    });
+    const a = dot.animate(frames, { duration: ms, easing: "ease-in-out" });
+    running.add(a);
+    a.onfinish = a.oncancel = () => { running.delete(a); dot.remove(); };
+  };
+
+  const parts = (text) => (zh ? Array.from(text) : text.match(/\S+\s*/g) || [text]);
+  const type = (target, text, start, duration) => {
+    const p = parts(text);
+    p.forEach((_, i) => later(() => { target.textContent = p.slice(0, i + 1).join(""); }, start + duration * (i + 1) / p.length));
+  };
+
+  const meta = () => {
+    const u = cases[index], a = agents[agent];
+    q("[data-active-agent]").textContent = a.name;
+    q("[data-active-mark]").innerHTML = a.mark;
+    q("[data-active-mark]").classList.toggle("dark", a.dark);
+    q("[data-active-link]").href = `${href}#${agent}`;
+    q("[data-case-title]").textContent = u.title;
+    q("[data-spoken-time]").textContent = u.time;
+    q("[data-spoken-ctx]").textContent = u.ctx;
+    q("[data-day-label]").textContent = u.dayLabel;
+    q("[data-day-total]").textContent = u.total;
+    q("[data-day-segs]").textContent = u.segs;
+    q("[data-day-time]").textContent = u.at;
+    q("[data-day-now]").style.left = `${u.now}%`;
+    q("[data-day-past]").style.clipPath = `inset(-4px ${100 - u.now}% -4px 0)`;
+    q("[data-phone-total]").textContent = u.today;
+    q("[data-reads]").textContent = u.reads;
+    q("[data-phone-time]").textContent = u.time;
+    q("[data-prompt-text]").textContent = u.prompt;
+    q("[data-copy]").dataset.copy = u.prompt;
+    q("[data-deliverable]").innerHTML = u.deliverable;
+    qa("[data-play-case]").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.playCase === index)));
+    qa("[data-play-agent]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.playAgent === agent)));
+    const pill = q(`[data-play-case="${index}"]`);
+    if (pill.parentElement.scrollWidth > pill.parentElement.clientWidth) pill.parentElement.scrollTo({ left: pill.offsetLeft - 12, behavior: reduce ? "auto" : "smooth" });
+  };
+  const finish = () => {
+    playing = false;
+    el.classList.add(...FLAGS); el.dataset.stage = "done";
+    rails.forEach((_, i) => light(i, true));
+    q("[data-spoken]").textContent = cases[index].line;
+    q("[data-phone-text]").textContent = cases[index].line;
+    q("[data-transcript-status]").textContent = copy.final;
+    q("[data-cloud-status]").textContent = copy.synced;
+    q("[data-agent-status]").textContent = copy.done;
+    q("[data-simulate-label]").textContent = copy.again;
+    setMark(watchMark, "idle"); setMark(phoneMark, "still");
+  };
+  const play = (i, who = cases[i].agent) => {
+    stop(); started = true; index = i; agent = who; meta();
+    watch.dataset.rec = "1"; showWatch("app");
+    if (reduce) { finish(); return; }
+    const line = cases[index].line, n = parts(line).length;
+    const D = Math.min(2400, Math.max(1300, n * (zh ? 62 : 150)));
+    playing = true;
+    el.classList.remove(...FLAGS); el.dataset.stage = "recording";
+    rails.forEach(([, solid]) => { solid.style.transition = "none"; solid.classList.remove("is-on"); });
+    void stage.offsetWidth;
+    rails.forEach(([, solid]) => { solid.style.transition = ""; });
+    q("[data-spoken]").textContent = ""; q("[data-phone-text]").textContent = "";
+    q("[data-transcript-status]").textContent = copy.volatile;
+    q("[data-cloud-status]").textContent = copy.syncing;
+    q("[data-agent-status]").textContent = copy.wait;
+    q("[data-simulate-label]").textContent = copy.again;
+    setMark(watchMark, "speak"); setMark(phoneMark, "write");
+
+    // Speaking: audio leaves the watch in small packets while it is still being said; the phone's text trails by a beat.
+    light(0, true); light(1, true);
+    type(q("[data-spoken]"), line, 80, D);
+    type(q("[data-phone-text]"), line, 480, D);
+    for (let t = 120; t < D + 150; t += 230) later(() => { packet(0, 420); later(() => packet(1, 420), 300); }, t);
+    const heard = D + 700;
+    later(() => {
+      el.classList.add("s-heard"); el.dataset.stage = "saving";
+      q("[data-phone-text]").textContent = line;
+      q("[data-transcript-status]").textContent = copy.final;
+      q("[data-cloud-status]").textContent = copy.synced;
+      setMark(watchMark, "idle"); setMark(phoneMark, "saved");
+      light(2, true); packet(2, 560);
+    }, heard);
+    later(() => { el.classList.add("s-saved"); setMark(phoneMark, "still"); }, heard + 560);
+    later(() => {
+      el.classList.add("s-asked"); el.dataset.stage = "reading";
+      q("[data-agent-status]").textContent = copy.reading;
+      light(3, true); packet(3, 620); later(() => packet(3, 620), 240);
+    }, heard + 1150);
+    later(() => { el.dataset.stage = "working"; q("[data-agent-status]").textContent = copy.working; }, heard + 2050);
+    later(finish, heard + 3250);
+  };
+
+  const pressCrown = () => {
+    crownBtn.classList.add("pressed");
+    showWatch(watch.dataset.state === "app" ? "face" : "app");
+    if (reduce) return;
+    // The crown travels inward and springs back, the case gives a little, and a ring leaves the point of contact.
+    q(".cimg").animate([{ transform: "translateX(0) scaleX(1)" }, { transform: "translateX(-34%) scaleX(.82)", offset: .28 }, { transform: "translateX(6%) scaleX(1)", offset: .7 }, { transform: "translateX(0) scaleX(1)" }], { duration: 460, easing: "cubic-bezier(.2,.8,.3,1)" });
+    watch.animate([{ transform: "translateX(0)" }, { transform: "translateX(-1.6%)", offset: .28 }, { transform: "translateX(.4%)", offset: .7 }, { transform: "translateX(0)" }], { duration: 460, easing: "cubic-bezier(.2,.8,.3,1)" });
+    crownBtn.animate([{ opacity: .9, transform: "scale(.35)" }, { opacity: 0, transform: "scale(1.9)" }], { duration: 560, easing: "ease-out", pseudoElement: "::after" });
+  };
+
+  el.addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b || b.matches("[data-copy]")) return;
+    if (b.matches("[data-simulate]") || b.dataset.act === "screen" || b.dataset.act === "comp") play(started ? (index + 1) % cases.length : 0);
+    else if (b.matches("[data-play-case]")) play(+b.dataset.playCase);
+    else if (b.matches("[data-play-agent]")) play(agents[b.dataset.playAgent].play, b.dataset.playAgent);
+    else if (b.dataset.act === "crown") pressCrown();
+  });
+  q("[data-agent-status]").setAttribute("role", "status");
+  q(".tapscr").setAttribute("aria-label", copy.simulate);
+  crownBtn.setAttribute("aria-label", zh ? "按下表冠" : "Press the Digital Crown");
+
+  layout();
+  new ResizeObserver(layout).observe(stage);
+  document.fonts?.ready.then(layout);
+  const settle = () => { if (playing) { stop(); finish(); } else running.forEach((a) => a.cancel()); };
+  new IntersectionObserver(([e]) => {
+    inView = e.isIntersecting;
+    if (!inView) settle();
+    else if (!started && !reduce && !document.hidden) play(0);
+  }, { threshold: .3 }).observe(stage);
+  document.addEventListener("visibilitychange", () => { if (document.hidden) settle(); });
+  if (reduce) { showWatch("app"); watch.dataset.rec = "1"; }
 }
 
-/* Copy buttons (agents page): copy the command or config, then confirm for a moment. */
+/* Shared prompt, command and configuration copying, including a selected-text fallback. */
 document.addEventListener("click", async (e) => {
   const b = e.target.closest?.("[data-copy]");
   if (!b) return;
-  const label = b.textContent;
-  try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = document.documentElement.lang.startsWith("zh") ? "已复制" : "Copied"; b.classList.add("done"); }
-  catch { b.textContent = "⌘C"; }
-  setTimeout(() => { b.textContent = label; b.classList.remove("done"); }, 1600);
+  const zh = document.documentElement.lang.startsWith("zh");
+  const label = b.textContent, ariaLabel = b.getAttribute("aria-label");
+  let copied = false;
+  try { await navigator.clipboard.writeText(b.dataset.copy); copied = true; }
+  catch {
+    const text = b.parentElement.querySelector("p, code, pre");
+    if (text) {
+      const range = document.createRange(); range.selectNodeContents(text);
+      const selection = getSelection(); selection.removeAllRanges(); selection.addRange(range);
+      try { copied = document.execCommand("copy"); } catch { /* Leave the text selected for manual copy. */ }
+      if (copied) selection.removeAllRanges();
+    }
+  }
+  b.textContent = copied ? (zh ? "已复制" : "Copied") : (zh ? "已选中" : "Selected");
+  b.setAttribute("aria-label", copied ? (zh ? "已复制" : "Copied") : (zh ? "复制失败，文字已选中，请手动复制" : "Copy failed. Text selected; copy it manually."));
+  b.classList.toggle("done", copied);
+  setTimeout(() => {
+    b.textContent = label; b.classList.remove("done");
+    if (ariaLabel) b.setAttribute("aria-label", ariaLabel); else b.removeAttribute("aria-label");
+  }, 1600);
 });
 
 /* Opened from the app (Handoff / AirDrop) as /agents#<id>: land on that card once fonts and layout settle. */

@@ -2,6 +2,7 @@
 import { readFileSync } from "node:fs";
 import { type Lang, PAGES, type PageId } from "./content";
 import { SITE_CSS } from "./style";
+import { WORDMARK } from "./wordmark";
 
 export const PATH_OF: Record<PageId, string> = { home: "/", privacy: "/privacy", terms: "/terms", support: "/support", agents: "/agents", changelog: "/changelog" };
 export const PAGE_IDS = Object.keys(PATH_OF) as PageId[];
@@ -24,16 +25,17 @@ function nav(lang: Lang, current: PageId, mark: string) {
   // /lang/<lang> remembers the choice in a cookie (worker/index.ts), then goes to the same page in that language.
   const switchTo = `/lang/${other}?next=${encodeURIComponent(href(other, current))}`;
   return `<header class="top"><div class="wrap">
-<a class="brand" href="${href(lang, "home")}">${mark}phemo</a>
-<nav class="nav">${link("agents", zh ? "连接 AI 助手" : "AI assistants", "opt")}${link("changelog", zh ? "更新日志" : "What's new", "opt")}${link("privacy", zh ? "隐私" : "Privacy", "opt")}${link("support", zh ? "帮助" : "Help")}<a class="lang" href="${switchTo}" hreflang="${other === "zh" ? "zh-Hans" : "en"}" lang="${other === "zh" ? "zh-Hans" : "en"}">${zh ? "English" : "中文"}</a></nav>
+<a class="brand" href="${href(lang, "home")}" aria-label="Phemo">${mark}${WORDMARK}</a>
+<nav class="nav">${link("agents", zh ? "连接你的 agent" : "Connect your agent", "opt")}${link("changelog", zh ? "更新日志" : "What's new", "opt")}${link("privacy", zh ? "隐私" : "Privacy", "opt")}${link("support", zh ? "帮助" : "Help")}<a class="lang" href="${switchTo}" hreflang="${other === "zh" ? "zh-Hans" : "en"}" lang="${other === "zh" ? "zh-Hans" : "en"}">${zh ? "English" : "中文"}</a></nav>
 </div></header>`;
 }
 
 function footer(lang: Lang) {
   const zh = lang === "zh";
   return `<footer><div class="wrap"><span>Phemo · © 2026 Benchyard Co., Limited</span>
-<nav><a href="${href(lang, "agents")}">${zh ? "连接 AI 助手" : "AI assistants"}</a><a href="${href(lang, "changelog")}">${zh ? "更新日志" : "What's new"}</a><a href="${href(lang, "privacy")}">${zh ? "隐私政策" : "Privacy"}</a><a href="${href(lang, "terms")}">${zh ? "使用条款" : "Terms"}</a><a href="${href(lang, "support")}">${zh ? "帮助与支持" : "Support"}</a><a href="mailto:support@benchyard.cn">support@benchyard.cn</a></nav>
+<nav><a href="${href(lang, "agents")}">${zh ? "连接你的 agent" : "Connect your agent"}</a><a href="${href(lang, "changelog")}">${zh ? "更新日志" : "What's new"}</a><a href="${href(lang, "privacy")}">${zh ? "隐私政策" : "Privacy"}</a><a href="${href(lang, "terms")}">${zh ? "使用条款" : "Terms"}</a><a href="${href(lang, "support")}">${zh ? "帮助与支持" : "Support"}</a><a href="mailto:support@benchyard.cn">support@benchyard.cn</a></nav>
 <p class="legal">${zh ? "Apple、Apple Watch、iPhone、iCloud 和 Mac 是 Apple Inc. 在美国和其他国家/地区注册的商标。App Store 是 Apple Inc. 的服务商标。" : "Apple, Apple Watch, iPhone, iCloud and Mac are trademarks of Apple Inc., registered in the U.S. and other countries. App Store is a service mark of Apple Inc."}</p>
+<p class="legal">${zh ? "各 agent 的名称与标志属于其各自所有者。无隶属或背书关系。" : "Agent names and marks belong to their owners. No affiliation or endorsement."}</p>
 </div></footer>`;
 }
 

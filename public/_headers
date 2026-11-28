@@ -8,3 +8,7 @@
 
 /skill.md
   Content-Type: text/markdown; charset=utf-8
+
+/downloads/*
+  Content-Type: application/octet-stream
+  Content-Disposition: attachment

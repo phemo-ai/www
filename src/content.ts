@@ -1,6 +1,8 @@
 /** Page content, zh-Hans and en. Bodies are trusted HTML; {{BASE}} is replaced with the site origin at render time. */
+import { agentsDirectory } from "./agents";
+import { CHANGELOG, chain, changelogBody, liveWatch } from "./live";
 export type Lang = "zh" | "en";
-export type PageId = "home" | "privacy" | "terms" | "support" | "agents";
+export type PageId = "home" | "privacy" | "terms" | "support" | "agents" | "changelog";
 
 export interface PageText {
   title: string;
@@ -30,7 +32,7 @@ interface Feature { title: string; text: string; visual: string }
 interface HomeCopy {
   title: string; description: string;
   h1: string; sub: string; soon: string; reqLine: string;
-  heroPhoneAlt: string; heroWatchAlt: string;
+  heroPhoneAlt: string;
   featH: string; features: Feature[];
   reqH: string; req: [string, string][];
   faqH: string; faq: [string, string][];
@@ -66,17 +68,6 @@ function callStrip(zh: boolean) {
 <p class="legend">${zh ? "通话时 watchOS 占用麦克风；挂断后不用你动手" : "watchOS holds the microphone during the call; afterwards you don't lift a finger"}</p></div>`;
 }
 
-function flow(zh: boolean) {
-  return `<div class="viz viz-flow">
-<div class="node">Apple Watch<small>${zh ? "只录有人说话的片段" : "speech-only chunks"}</small></div>
-<div class="arrow" aria-hidden="true"></div>
-<div class="node pass">iPhone<small>${zh ? "在手机上转写，不经过我们" : "transcribes on the phone, never through us"}</small></div>
-<div class="arrow" aria-hidden="true"></div>
-<div class="node home">${zh ? "你的 iCloud" : "Your iCloud"}<small>${zh ? "录音 · 文字 · 要点 · 待办" : "audio · text · highlights · to-dos"}</small></div>
-<div class="fan"><span>${zh ? "你的设备" : "Your devices"}</span><span>Mac · ${zh ? "你的 AI 助手" : "your AI assistant"}</span></div>
-</div>`;
-}
-
 function todosCard(zh: boolean) {
   const items = zh
     ? [["把修改后的合同发给张经理", "周五", "15:31"], ["和设计组确认新手引导文案", "下周一", "09:16"], ["订周六晚七点妈妈生日的餐厅", "周六", "13:05"]]
@@ -106,19 +97,18 @@ const HOME: Record<Lang, HomeCopy> = {
     title: "Phemo · Apple Watch 上的全天录音，只留你说过的话",
     description: "戴上就录，表盘照常；只录人声，自动整理成文字、要点和待办，全部存在你自己的 iCloud。",
     h1: '<span class="nb">Apple Watch</span> 上的全天录音，<br>只留你说过的话。',
-    sub: "戴上就录，表盘照常。文字、要点和待办自动整理好，全部存在你自己的 iCloud。",
+    sub: "戴上就录，表盘照常。转写在你的 iPhone 上完成，文字、要点和待办只存在你自己的 iCloud，你的 agent 随时接手。",
     soon: "即将上架 App Store",
     reqLine: "watchOS 26 · iOS 27",
     heroPhoneAlt: "iPhone 上的 Phemo：今天的总结、要点和带时间的转写",
-    heroWatchAlt: "Apple Watch 上的 Phemo：正在录制说话，已录 2 小时 13 分",
     featH: "它能做什么",
     features: [
       { title: "一键开始，表盘照常", text: "表盘上点一下 Phemo 就开始录，放下手腕仍是你的表盘。", visual: watch("watch-face-zh", "表盘上的 Phemo 复杂功能，顶部是麦克风使用标志") },
+      { title: "轻点标记，长按停止", text: "说到要紧处轻点一下手表，iPhone 时间线上会插一面小旗，整理时优先看这一段。", visual: liveWatch("zh") },
       { title: "只录人声，撑一整天", text: "手表自己判断有没有人说话，安静时什么都不做。", visual: dayTimeline(true) },
       { title: "来电后自动续录", text: "通话、Siri 结束后自己接着录，接不上会轻震提醒。", visual: callStrip(true) },
-      { title: "只存在你自己的 iCloud", text: "在 iPhone 上转写，不经过任何 Phemo 服务器。", visual: flow(true) },
       { title: "每天的要点和待办", text: "用 iPhone 上的 Apple 智能，或你自己选的 AI 服务整理，待办带着截止时间。", visual: todosCard(true) },
-      { title: "你的 AI 助手也能读", text: "每天一份 Markdown，放在 iCloud 云盘，助手在你授权时读取。", visual: agentViz(true) },
+      { title: "直接连上你的 agent", text: "Claude、Codex、Cursor、WorkBuddy 通过 skill 或 MCP 读取每天的 Markdown，回顾、跟进都交给它。", visual: agentViz(true) },
     ],
     reqH: "需要什么",
     req: [["手表", "Apple Watch，watchOS 26 或更新"], ["手机", "iPhone，iOS 27 或更新"], ["iCloud", "登录 Apple 账户并打开 iCloud 云盘"], ["要点和待办", "支持 Apple 智能的 iPhone，或你自己的 AI 服务 Key（OpenAI、Anthropic、通义千问、豆包等）"]],
@@ -135,19 +125,18 @@ const HOME: Record<Lang, HomeCopy> = {
     title: "Phemo · All-day recording on Apple Watch that keeps only what was said",
     description: "Wear it and it records, with your watch face as usual. Speech only, turned into text, highlights and to-dos — all stored in your own iCloud.",
     h1: 'All-day recording on <span class="nb">Apple Watch</span> <br>that keeps only what was said.',
-    sub: "Tap once and keep your watch face. Text, highlights and to-dos sort themselves out — all stored in your own iCloud.",
+    sub: "Tap once and keep your watch face. Your iPhone transcribes on device; text, highlights and to-dos live only in your own iCloud, ready for your agent.",
     soon: "Coming to the App Store",
     reqLine: "watchOS 26 · iOS 27",
     heroPhoneAlt: "Phemo on iPhone: today's summary, highlights and timed transcript",
-    heroWatchAlt: "Phemo on Apple Watch: recording speech, 2 h 13 min so far",
     featH: "What it does",
     features: [
       { title: "One tap, your watch face stays", text: "Tap Phemo on your watch face to start; lower your wrist and it's still your face.", visual: watch("watch-face-en", "The Phemo complication on a watch face, with the microphone indicator at the top") },
+      { title: "Tap to mark, hold to stop", text: "Tap the watch when something matters; a flag lands on the iPhone timeline and that part is looked at first.", visual: liveWatch("en") },
       { title: "Speech only, all day", text: "The watch decides whether anyone is talking and does nothing in silence.", visual: dayTimeline(false) },
       { title: "Picks up again after calls", text: "After a call or Siri it resumes on its own, and taps your wrist if it can't.", visual: callStrip(false) },
-      { title: "Stored only in your own iCloud", text: "Transcribed on your iPhone, never through a Phemo server.", visual: flow(false) },
       { title: "Highlights and to-dos, daily", text: "Sorted by Apple Intelligence on your iPhone or the AI provider you choose, with due dates on the to-dos.", visual: todosCard(false) },
-      { title: "Readable by your AI assistant", text: "One Markdown file a day in iCloud Drive, read by your assistant when you allow it.", visual: agentViz(false) },
+      { title: "Plugs into your agent", text: "Claude, Codex, Cursor or WorkBuddy reads each day's Markdown through a skill or MCP, to look back and follow up.", visual: agentViz(false) },
     ],
     reqH: "What you need",
     req: [["Watch", "Apple Watch on watchOS 26 or later"], ["Phone", "iPhone on iOS 27 or later"], ["iCloud", "Signed in, with iCloud Drive on"], ["Highlights and to-dos", "An iPhone with Apple Intelligence, or your own AI provider key (OpenAI, Anthropic, Qwen, Doubao and others)"]],
@@ -175,8 +164,10 @@ function home(lang: Lang): PageText {
 <div class="actions"><span class="pill">${c.soon}</span></div>
 <p class="req-line">${c.reqLine}</p>
 </div>
-<div class="duo">${watch(`watch-recording-${sfx}`, c.heroWatchAlt, { mark: 'data-state="idle" data-cycle="idle:2.6,speak:4.2,saved:1.3"', lazy: false })}${iphone(`iphone-today-${sfx}`, c.heroPhoneAlt, false)}</div>
+<div class="duo">${liveWatch(lang, { lazy: false })}${iphone(`iphone-today2-${sfx}`, c.heroPhoneAlt, false)}</div>
 </div></section>
+
+${chain(lang)}
 
 <section class="features" id="features"><div class="wrap">
 <h2>${c.featH}</h2>
@@ -451,46 +442,30 @@ const TOOLS: [string, string, string][] = [
 function agents(lang: Lang): PageText {
   const zh = lang === "zh";
   const esc = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;");
-  const desktop = `{
-  "mcpServers": {
-    "phemo": { "command": "phemo-mcp" }
-  }
-}`;
-  const install = "npm install -g phemo-mcp";
-  const code = "claude mcp add phemo -- phemo-mcp";
-  const skill = `mkdir -p ~/.claude/skills/phemo
-curl -fsSL {{BASE}}/skill.md -o ~/.claude/skills/phemo/SKILL.md`;
   const tools = `<div class="tablewrap"><table><tr><th>${zh ? "工具" : "Tool"}</th><th>${zh ? "作用" : "What it does"}</th></tr>${TOOLS.map(([n, z, e]) => `<tr><td><span class="inline">${n}</span></td><td>${zh ? z : e}</td></tr>`).join("")}</table></div>`;
   const T = zh
     ? {
-        title: "连接 AI 助手 · Phemo", description: "Phemo 每天的内容是 iCloud 云盘里的 Markdown 文件。用 skill 或本地 MCP，让你电脑上的 AI 助手读取。",
-        h1: "连接 AI 助手", lead: "Phemo 把每天的转写、要点和待办写成 iCloud 云盘里的 Markdown 文件。你 Mac 上的 AI 助手读这些文件，就能回顾你说过的话、整理待办。数据不经过我们的服务器，也只有你配置过的助手能读。",
-        h2a: "1. 找到文件", find: "iPhone 上的 Phemo 会自动把内容同步到 <strong>iCloud 云盘 › Phemo</strong>。在登录了同一 Apple 账户的 Mac 上，它的位置是：",
+        title: "连接 AI 助手 · Phemo", description: "一键把 Claude Code、Codex、Cursor、WorkBuddy、Trae 等 agent 连上你在 iCloud 云盘里的 Phemo 笔记。",
+        h1: "连接 AI 助手", lead: "Phemo 把每天的转写、要点和待办写成你 iCloud 云盘里的 Markdown 文件。连上之后，你 Mac 上的 agent 就能回顾你说过的话、帮你跟进待办。数据不经过我们，只有你连接的 agent 能读。",
+        h2a: "你的文件", find: "iPhone 上的 Phemo 会把内容同步到 <strong>iCloud 云盘 › Phemo</strong>。在登录了同一 Apple 账户的 Mac 上，它的位置是：",
         tree: "每天一个文件，按年月分文件夹，另有一份全部未完成待办：", sample: "每个日期文件长这样：",
-        h2b: "2. 任选一种方式接入",
-        skillP: "<strong>方式一：Skill</strong>（Claude Code、Codex 等能读文件的助手）。把 Phemo 的 skill 放进助手的 skills 目录，它就知道去哪里找、怎么读：",
-        mcpP: "<strong>方式二：本地 MCP</strong>（Claude Desktop、Claude Code、Cursor 等支持 MCP 的助手）。<span class=\"inline\">phemo-mcp</span> 在你的 Mac 上运行，只读上面的文件夹。先安装（phemo-mcp 发布到 npm 之后可用）：",
-        dirP: "默认读取上面的文件夹；放在别处时加参数 <span class=\"inline\">--dir &lt;文件夹&gt;</span>。",
-        desk: "Claude Desktop：编辑 <span class=\"inline\">claude_desktop_config.json</span>", cc: "Claude Code：", cur: "Cursor：把同样的 <span class=\"inline\">mcpServers</span> 配置写进 <span class=\"inline\">~/.cursor/mcp.json</span>。",
-        h2c: "MCP 提供的工具", note: "目前是只读的：助手不能修改或删除你的内容。想停止读取，删掉上面的配置即可。只能在网页里运行的云端助手读不到这些文件，这是有意的设计。",
+        h2c: "agent 能用的工具", note: "只读：agent 不能修改或删除你的内容。想停止读取，在 agent 里移除 phemo 即可。",
       }
     : {
-        title: "Connect an AI assistant · Phemo", description: "Phemo keeps each day as Markdown in iCloud Drive. Let the AI assistant on your Mac read it through a skill or a local MCP server.",
-        h1: "Connect an AI assistant", lead: "Phemo writes each day's transcript, highlights and to-dos as Markdown files in iCloud Drive. An AI assistant on your Mac can read them to look back at what was said or sort out to-dos. Nothing goes through our server, and only assistants you configure can read them.",
-        h2a: "1. Find the files", find: "Phemo on your iPhone keeps them in sync at <strong>iCloud Drive › Phemo</strong>. On a Mac signed in to the same Apple Account they are at:",
+        title: "Connect an AI assistant · Phemo", description: "Connect Claude Code, Codex, Cursor, WorkBuddy, Trae and other agents to your Phemo notes in iCloud Drive in one step.",
+        h1: "Connect an AI assistant", lead: "Phemo writes each day's transcript, highlights and to-dos as Markdown files in your iCloud Drive. Once connected, the agent on your Mac can look back at what was said and follow up on to-dos. Nothing goes through us, and only agents you connect can read them.",
+        h2a: "Your files", find: "Phemo on your iPhone keeps them in sync at <strong>iCloud Drive › Phemo</strong>. On a Mac signed in to the same Apple Account they are at:",
         tree: "One file per day in year/month folders, plus all open to-dos:", sample: "A day file looks like this:",
-        h2b: "2. Connect, either way",
-        skillP: "<strong>Option 1: Skill</strong> (Claude Code, Codex and other assistants that read files). Put Phemo's skill into the assistant's skills folder so it knows where to look and how to read:",
-        mcpP: "<strong>Option 2: local MCP</strong> (Claude Desktop, Claude Code, Cursor and other MCP clients). <span class=\"inline\">phemo-mcp</span> runs on your Mac and only reads that folder. Install it first (available once phemo-mcp is published to npm):",
-        dirP: "It reads the folder above by default; add <span class=\"inline\">--dir &lt;folder&gt;</span> if yours is elsewhere.",
-        desk: "Claude Desktop: edit <span class=\"inline\">claude_desktop_config.json</span>", cc: "Claude Code:", cur: "Cursor: put the same <span class=\"inline\">mcpServers</span> block into <span class=\"inline\">~/.cursor/mcp.json</span>.",
-        h2c: "MCP tools", note: "Read-only for now: assistants can't change or delete your content. Remove the configuration to stop it. Assistants that only run in a web browser can't read these files — by design.",
+        h2c: "Tools your agent gets", note: "Read-only: agents can't change or delete your content. Remove phemo from the agent to stop it.",
       };
   return {
     title: T.title,
     description: T.description,
-    body: `<article class="doc"><div class="narrow">
+    body: `<article class="doc wide"><div class="narrow">
 <h1>${T.h1}</h1><p class="updated">${T.lead}</p>
+</div>
+${agentsDirectory(lang)}
+<div class="narrow">
 <h2>${T.h2a}</h2>
 <p>${T.find}</p>
 <div class="code">${DIR}</div>
@@ -501,17 +476,6 @@ curl -fsSL {{BASE}}/skill.md -o ~/.claude/skills/phemo/SKILL.md`;
   README.md</div>
 <p>${T.sample}</p>
 <div class="code">${esc(SAMPLE)}</div>
-<h2>${T.h2b}</h2>
-<p>${T.skillP}</p>
-<div class="code">${skill}</div>
-<p>${T.mcpP}</p>
-<div class="code">${install}</div>
-<p>${T.dirP}</p>
-<p>${T.desk}</p>
-<div class="code">${esc(desktop)}</div>
-<p>${T.cc}</p>
-<div class="code">${esc(code)}</div>
-<p>${T.cur}</p>
 <h2>${T.h2c}</h2>
 ${tools}
 <div class="note">${T.note}</div>
@@ -519,4 +483,9 @@ ${tools}
   };
 }
 
-export const PAGES: Record<PageId, (lang: Lang) => PageText> = { home, privacy, terms, support, agents };
+function changelog(lang: Lang): PageText {
+  const c = CHANGELOG[lang];
+  return { title: c.title, description: c.description, body: changelogBody(lang) };
+}
+
+export const PAGES: Record<PageId, (lang: Lang) => PageText> = { home, privacy, terms, support, agents, changelog };

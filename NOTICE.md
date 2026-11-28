@@ -23,8 +23,18 @@ neither language has the removed information button or AI-service configuration.
 The hero is an interactive illustration, with Phemo's actual recording-screen pixels on the Watch,
 a live HTML Today transcript on iPhone, and illustrative results produced by the user's own agent.
 The iPad and MacBook have been removed from the home page. The Watch and iPhone bezels are used
-at every viewport size, at their correct relative scale; the iCloud node, the Markdown file chip and
-the agent panel are drawn HTML.
+at every viewport size, at their correct relative scale; the day timeline, the iCloud node, the
+iCloud Drive › Phemo library card and the agent panel are drawn HTML. The numbers in the figure
+(hours recorded, days kept, what the agent read) are illustrative.
+
+The iCloud glyph (`src/scene.ts`) is the Simple Icons 16.38.1 drawing `icloud` (CC0-1.0 for the drawing),
+filled with iCloud's blue, at the owner's request. iCloud is a trademark of Apple Inc.; it marks where
+the data is stored, and no affiliation or endorsement is claimed.
+
+## Wordmark
+
+`src/wordmark.ts` — "phemo" set in La Belle Aurore by Kimberly Geswein (SIL Open Font License 1.1,
+https://github.com/google/fonts/tree/main/ofl/labelleaurore), converted to outlines. No font file is served.
 At the owner's explicit request, the hero restores the separate crown and crownless-watch assets
 from 2235e6a. Only the separate crown and screen feedback animate. This crown edit is a conscious
 exception to the unmodified-device marketing rule above, not a claim of Apple approval.

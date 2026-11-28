@@ -24,6 +24,7 @@ p{margin:0}
 .top .wrap{display:flex;align-items:center;justify-content:space-between;height:68px;max-width:none}
 .brand{display:flex;align-items:center;gap:8px;text-decoration:none;font-weight:400;font-size:19px;letter-spacing:-.01em}
 .brand svg{width:26px;height:26px;color:var(--ink)}
+.brand .wordmark{width:auto;height:35px;margin:1px 0 0 -3px;fill:currentColor;stroke:currentColor;stroke-width:.9;stroke-linejoin:round;overflow:visible}
 .nav{display:flex;align-items:center;gap:clamp(14px,2.4vw,30px);font-size:14px}
 .nav a{text-decoration:none;color:var(--ink2)}
 .nav a:hover,.nav a[aria-current]{color:var(--ink)}
@@ -320,41 +321,64 @@ details p{padding:0 0 20px}
 @media(prefers-reduced-motion:reduce){
 *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
-/* Home hero: one figure. Watch → your iCloud → iPhone, then the day's Markdown in iCloud Drive → your agent. Device sizes follow the viewport height
-   (--ph is the phone's height) so the whole path fits the first screen; the phone UI scales with its screen. */
+/* Home hero: one open figure for a whole recorded day. The day's timeline on top; under it Watch → your iCloud → iPhone,
+   then the Phemo library in iCloud Drive (skill / MCP) → your agent. Device sizes follow the viewport height
+   (--ph is the phone's height) so everything fits the first screen; the phone UI scales with its screen. */
 .vendor-mark{display:inline-block;object-fit:contain;vertical-align:middle}
 .lm-vendor{background:#000;border-radius:4px;padding:2px}
-.journey{--reserve:300px;--ph:min(clamp(430px,calc(100vh - var(--reserve)),600px),38vw);--pw:calc(var(--ph) * .489);--ww:calc(var(--pw) * .68);--sage:#4f7462;--sage2:#a9bbaf;--tint:#e4ece5;max-width:1480px;margin:0 auto;padding:16px clamp(20px,2.8vw,40px) 30px}
+.journey{--reserve:330px;--ph:min(clamp(430px,calc(100vh - var(--reserve)),600px),38vw);--pw:calc(var(--ph) * .489);--ww:calc(var(--pw) * .68);--sage:#4f7462;--sage2:#a9bbaf;--tint:#e4ece5;max-width:1480px;margin:0 auto;padding:16px clamp(20px,2.8vw,40px) 30px}
 @supports (height:100svh){.journey{--ph:min(clamp(430px,calc(100svh - var(--reserve)),600px),38vw)}}
 .j-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:18px}
-.j-head h1{font-size:clamp(30px,3vw,42px);line-height:1.2;letter-spacing:-.03em}
+.j-head h1{font-size:clamp(32px,3.5vw,50px);line-height:1.15;letter-spacing:-.03em}
 :lang(zh-Hans) .j-head h1{letter-spacing:.01em}
 .j-head h1 span{display:inline-block;white-space:pre}
-.j-sub{margin-top:8px;font-size:16px;line-height:1.6;color:var(--ink2)}
+.j-sub{margin-top:8px;max-width:62em;font-size:16px;line-height:1.6;color:var(--ink2)}
 .j-cta{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:8px;padding-bottom:4px}
 .j-cta small{font-size:14px;color:var(--ink2);white-space:nowrap}
 .j-cta .pill{padding:9px 18px;white-space:nowrap}
 
-.stage{position:relative;display:grid;grid-template-columns:auto 112px auto minmax(150px,1fr) minmax(360px,min(34vw,500px));background:var(--card);border:1px solid var(--line);border-radius:28px;padding:14px clamp(18px,2vw,28px) 22px}
+.stage{position:relative;display:grid;grid-template-columns:auto 104px auto minmax(190px,1fr) minmax(350px,min(33vw,500px));grid-template-rows:auto 1fr;row-gap:16px}
 .rails{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:0}
-.rail{fill:none;stroke:var(--sage2);stroke-width:1.5;stroke-dasharray:1.5 6;stroke-linecap:round}
+.rail{fill:none;stroke:var(--sage2);stroke-width:1.5;stroke-linecap:round;opacity:.55}
 .rail-on{fill:none;stroke:var(--sage);stroke-width:1.5;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset .6s ease}
 .rail-on.is-on{stroke-dashoffset:0}
 .rails circle{fill:var(--sage)}
 .st{position:relative;z-index:1;display:flex;flex-direction:column;min-width:0}
-.step{display:flex;align-items:center;justify-content:center;gap:8px;height:30px;margin-bottom:6px;font-size:14px;color:var(--ink2);white-space:nowrap}
-.step i{flex:none;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;border:1px solid var(--sage2);font:12px/1 var(--mono);font-style:normal;color:var(--sage);transition:background .3s,color .3s,border-color .3s}
-.st-watch .step,.s-heard .st-phone .step,.s-done .st-agent .step{color:var(--ink)}
-.st-watch .step i,.s-heard .st-phone .step i,.s-done .st-agent .step i{background:var(--sage);border-color:var(--sage);color:#fff}
-.st-cloud,.st-file{padding-top:36px}
+.icloud{display:block}
+
+/* The day: everything the watch has kept since morning, up to now. Silence is a dot; speech is a bar. */
+.day{grid-column:1/-1;position:relative;z-index:1}
+.day-top{display:flex;align-items:baseline;justify-content:space-between;gap:16px;font-size:14px;line-height:1.4;color:var(--ink2);white-space:nowrap}
+.day-top p{display:flex;align-items:baseline;gap:12px;min-width:0}
+.day-top p>b{font-size:17px;font-weight:500;color:var(--ink)}
+.day-top p>b span+span{font-variant-numeric:tabular-nums}
+.day-lib{align-items:center!important;gap:8px!important}
+.day-lib .icloud{width:22px;flex:none}
+.day-lib b{font-weight:500;color:var(--ink)}
+.day-track{position:relative;height:40px;margin-top:6px}
+.day-wave{position:absolute;inset:0}
+.day-wave svg{display:block;width:100%;height:100%;overflow:visible}
+.day-wave .w110{display:none}
+.day-wave path{fill:none;stroke-width:2;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.day-rest path{stroke:var(--sage2);opacity:.7}
+.day-past{transition:clip-path .7s cubic-bezier(.3,.7,.2,1)}
+.day-past path{stroke:var(--ink)}
+.day-now{position:absolute;top:-3px;bottom:-3px;width:0;border-left:1.5px solid var(--sage);transition:left .7s cubic-bezier(.3,.7,.2,1)}
+.day-now::after{content:"";position:absolute;left:-5px;top:50%;width:9px;height:9px;margin-top:-4.5px;border-radius:50%;background:var(--sage);box-shadow:0 0 0 3px var(--paper)}
+.journey[data-stage=recording] .day-now::after{background:#FF9F0A;animation:pulse .6s ease-in-out infinite alternate}
+.day-now time{position:absolute;left:8px;top:-1px;font:12px/1.3 var(--mono);color:var(--sage);background:var(--paper);padding:0 4px;border-radius:4px}
+.day-axis{position:relative;height:18px;margin-top:2px;font:12px/18px var(--mono);color:var(--mute)}
+.day-axis span{position:absolute;top:0}
 .st-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
 
 /* 1 · Watch: what is being said, the watch, the trigger */
 .st-watch{width:calc(var(--ww) + 64px)}
 .bubble{position:relative;width:100%;background:#fff;border:1px solid var(--line);border-radius:16px;padding:9px 14px 11px;margin-bottom:14px}
 .bubble::after{content:"";position:absolute;left:50%;bottom:-7px;width:12px;height:12px;background:#fff;border-right:1px solid var(--line);border-bottom:1px solid var(--line);transform:translateX(-50%) rotate(45deg)}
-.bubble-top{display:flex;align-items:center;justify-content:space-between;gap:8px;height:20px}
-.bubble time{font:13px var(--mono);color:var(--mute)}
+.bubble-top{display:flex;align-items:center;gap:8px;height:20px}
+.bubble time{flex:none;font:13px var(--mono);color:var(--mute)}
+.bubble-ctx{flex:1;min-width:0;font-size:13px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bubble-top .bars{flex:none}
 .bubble p{margin-top:2px;font-size:16px;line-height:1.45;min-height:2.9em}
 :lang(en) .bubble p{min-height:4.35em}
 .bars{display:flex;align-items:center;gap:2px;height:16px}
@@ -384,9 +408,9 @@ details p{padding:0 0 20px}
 .pui{height:100%;display:flex;flex-direction:column;padding:0 1.05em .7em;font-size:5.5cqw;line-height:1.35;color:#151719;font-family:-apple-system,BlinkMacSystemFont,var(--sans)}
 .pui-status{display:flex;justify-content:space-between;align-items:center;height:3.5em;padding:.8em .7em 0;font-size:.95em;font-weight:600}
 .pui-batt{width:1.7em;height:.8em;border-radius:.25em;background:#151719}
-.pui header{display:flex;align-items:baseline;justify-content:space-between;margin-top:.8em}
+.pui header{display:flex;align-items:baseline;justify-content:space-between;gap:.5em;margin-top:.8em}
 .pui header b{font-size:2.05em;font-weight:700;letter-spacing:-.02em}
-.pui header span{font-size:.88em;color:#73747c}
+.pui header span{min-width:0;font-size:.88em;color:#73747c;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pui-live{display:flex;align-items:center;gap:.5em;margin:.8em 0 .65em;padding:.5em .8em;border-radius:999px;background:#fff;font-size:.88em;color:#3c3d43}
 .pui-live svg{flex:none;width:1.5em;height:1.5em;color:#151719}
 .pui-live .bars{margin-left:auto;height:1.1em;gap:.14em}
@@ -406,25 +430,34 @@ details p{padding:0 0 20px}
 .journey:not(.s-saved) .pui-saved{opacity:.25}
 .pui-home{flex:none;width:36%;height:.32em;border-radius:1em;background:#151719;margin:.8em auto 0}
 
-/* Your iCloud joins the watch and the phone; the day's Markdown in iCloud Drive joins the phone and the agent. */
+/* Your iCloud joins the watch and the phone; the Phemo library in iCloud Drive joins the phone and the agent. */
 .cloud{position:relative;display:flex;flex-direction:column;align-items:center}
-.cloud-disc{position:relative;flex:none;display:grid;place-items:center;width:64px;height:64px;border-radius:50%;background:#fff;border:1px solid var(--line);color:var(--ink)}
-.cloud-disc svg{width:36px;height:auto}
-.cloud-disc::after{content:"";position:absolute;inset:-1px;border-radius:50%;border:1.5px solid var(--sage);opacity:0}
+.cloud-disc{position:relative;flex:none;display:grid;place-items:center;width:62px;height:62px;border-radius:23%;background:#fff;box-shadow:0 0 0 1px rgba(27,43,44,.07),0 6px 18px rgba(27,43,44,.1)}
+.cloud-disc svg{width:68%;height:auto}
+.cloud-disc::after{content:"";position:absolute;inset:-1px;border-radius:inherit;border:1.5px solid #3d9df7;opacity:0}
 .journey[data-stage=recording] .cloud-disc::after{animation:ring 1.1s ease-out infinite}
 @keyframes ring{0%{opacity:.8;transform:scale(1)}100%{opacity:0;transform:scale(1.5)}}
 .cloud-text{position:absolute;top:100%;left:50%;width:132px;transform:translateX(-50%);padding-top:8px;display:flex;flex-direction:column;align-items:center;text-align:center}
 .cloud-text b{font-size:15px;font-weight:500;line-height:1.4}
 .cloud-text small{font-size:14px;line-height:1.4;color:var(--ink2)}
 .cloud-sync{font-size:14px;line-height:1.4;color:var(--sage)}
-.file{position:relative;display:flex;flex-direction:column;align-items:center}
-.cloud-file{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 12px 6px 9px;white-space:nowrap;transition:transform .3s,border-color .3s,opacity .3s}
-.cloud-file svg{flex:none;width:19px;height:auto}
-.cloud-file code{font:13px var(--mono)}
-.journey:not(.s-saved) .cloud-file{opacity:.45}
-.journey[data-stage=saving] .cloud-file{border-color:var(--sage);transform:scale(1.07)}
-.file small{position:absolute;top:100%;left:50%;width:150px;transform:translateX(-50%);padding-top:8px;font-size:14px;line-height:1.45;color:var(--ink2);text-align:center}
-.file small span{display:block}
+.st-lib{padding:0 16px}
+.lib{width:100%;max-width:200px;display:flex;flex-direction:column;gap:9px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:12px 13px;transition:border-color .3s,box-shadow .3s}
+.journey[data-stage=saving] .lib,.journey[data-stage=reading] .lib{border-color:var(--sage);box-shadow:0 8px 26px rgba(79,116,98,.16)}
+.lib-head{display:flex;align-items:center;gap:8px}
+.lib-head .icloud{flex:none;width:26px}
+.lib-head p{min-width:0;display:flex;flex-direction:column;line-height:1.35}
+.lib-head b{font-size:14px;font-weight:500;white-space:nowrap}
+.lib-head small{font-size:13px;color:var(--ink2);white-space:nowrap}
+.lib-total{font-size:15px;font-weight:500;line-height:1.3;white-space:nowrap;font-variant-numeric:tabular-nums}
+.lib-rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.lib-rows li{display:flex;align-items:center;gap:8px;font-size:14px;line-height:1.3;color:var(--ink);background:var(--card);border-radius:8px;padding:5px 9px}
+.lib-rows li::before{content:"";flex:none;width:5px;height:5px;border-radius:50%;background:var(--sage2)}
+.journey[data-stage=reading] .lib-rows li{animation:lib-hit .55s ease-out both;animation-delay:calc(var(--i) * .15s)}
+@keyframes lib-hit{0%,100%{background:var(--card)}35%{background:var(--tint);transform:translateX(3px)}}
+.lib-via{display:flex;flex-wrap:wrap;align-items:center;gap:5px;font-size:13px;color:var(--ink2)}
+.lib-via b{font:500 12px/1 var(--mono);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:4px 6px}
+.lib-via small{flex-basis:100%;font-size:13px;line-height:1.35}
 
 /* 4 · The agent: who does it, what you ask, what comes back; then every outcome and every agent */
 .st-agent .st-body{align-items:stretch}
@@ -456,6 +489,11 @@ details p{padding:0 0 20px}
 .pa-ask .copy{flex:none;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;font:14px/1.3 var(--sans);padding:6px 12px;min-height:32px;cursor:pointer}
 .pa-ask .copy:hover{border-color:var(--ink)}
 .pa-ask .copy.done{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.pa-trace{display:flex;align-items:center;gap:6px;font-size:14px;line-height:1.35;color:var(--ink2);white-space:nowrap;transition:opacity .35s}
+.pa-trace svg{flex:none;width:18px;height:18px;color:var(--sage)}
+.pa-trace span:first-of-type{flex:none;color:var(--sage)}
+.pa-trace [data-reads]{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.journey:not(.s-asked) .pa-trace{opacity:0}
 .pa-result{position:relative;flex:1;display:flex;flex-direction:column;min-height:148px;background:var(--card);border-radius:16px;padding:13px 16px 14px}
 .pa-result-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
 .home .pa-result h2{flex:1;min-width:0;font-size:17px;font-weight:500;line-height:1.35;letter-spacing:0;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -491,14 +529,17 @@ details p{padding:0 0 20px}
 .wall .tile[aria-pressed=true]{border-color:var(--ink);box-shadow:0 0 0 1.5px var(--ink)}
 
 /* Short screens (laptops): a lower header and tighter chrome leave the height to the devices. */
-@media (max-height:800px) and (min-width:1200px){
+@media (max-height:880px) and (min-width:1200px){
 .home .top .wrap{height:56px}.home main{padding-top:56px}
-.journey{--reserve:234px;padding-top:8px;padding-bottom:16px}
-.j-head{margin-bottom:12px}.j-head h1{font-size:clamp(28px,2.7vw,36px)}.j-sub{margin-top:4px;font-size:15px}
-.stage{padding-top:10px;padding-bottom:14px}
+.journey{--reserve:268px;--ph:min(clamp(400px,calc(100vh - var(--reserve)),600px),38vw);padding-top:8px;padding-bottom:16px}
+.j-head{margin-bottom:12px}.j-head h1{font-size:clamp(28px,2.9vw,40px)}.j-sub{margin-top:4px;font-size:15px}
+.stage{row-gap:10px}
+.day-track{height:32px;margin-top:4px}
 .st-hint{display:none}
-.panel{gap:9px;padding:14px}
-.pa-tag{display:none}
+.lib{gap:7px;padding:10px 11px}.lib-rows li{padding:4px 9px}
+.panel{gap:8px;padding:12px 14px}
+.pa-tag,.pa-wall p{display:none}
+.pa-ask [data-prompt-text]{-webkit-line-clamp:2}
 .pa-result{min-height:120px;padding:10px 14px 12px}
 .pa-result-body{gap:8px;padding-top:8px}
 .pa-skel{top:46px;left:14px;right:14px}
@@ -507,18 +548,21 @@ details p{padding:0 0 20px}
 .pa-wall p{margin-bottom:4px}
 }
 @media (max-height:700px) and (min-width:1200px){
-.journey{--reserve:200px}
-.j-sub,.pa-wall p{display:none}
+.journey{--reserve:212px;padding-bottom:8px}
+.stage{row-gap:8px}
+.j-sub,.day-axis{display:none}
+.panel{gap:6px;padding:10px 14px}
 .j-cta{flex-direction:row-reverse;align-items:center;gap:14px;padding:0}
-.panel{gap:8px;padding:12px 14px}
 }
-/* Narrow: what is said on top, Watch · iCloud · iPhone in a row, the file under the phone, then the agent. */
+/* Narrow: the day and what is said on top, Watch · iCloud · iPhone in a row, the library under them, then the agent. */
 @media (max-width:1199px){
 .journey{--ph:400px;--ww:164px;max-width:680px}
 .j-head{flex-direction:column;align-items:flex-start;gap:12px}
 .j-cta{flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:0}
-.stage{grid-template-columns:1fr 112px auto;grid-template-areas:"say say say" "watch cloud phone" "sim sim phone" "file file file" "agent agent agent";grid-template-rows:auto 1fr auto;column-gap:8px;row-gap:14px}
-.step,.st-hint{display:none}
+.stage{grid-template-columns:1fr 112px auto;grid-template-areas:"day day day" "say say say" "watch cloud phone" "sim sim phone" "lib lib lib" "agent agent agent";grid-template-rows:auto auto 1fr auto;column-gap:8px;row-gap:14px}
+.day{grid-area:day}
+.day-wave .w220{display:none}.day-wave .w110{display:block}
+.st-hint{display:none}
 .st-watch,.st-watch .st-body,.wdev{display:contents}
 .bubble{grid-area:say;margin:0;position:relative;z-index:1}
 .bubble::after{left:22%}
@@ -526,13 +570,13 @@ details p{padding:0 0 20px}
 .simulate{grid-area:sim;justify-self:center;margin-top:0;position:relative;z-index:1}
 .st-cloud{grid-area:cloud;padding:0}
 .st-phone{grid-area:phone}
-.st-file{grid-area:file;padding:0}
-.st-file .st-body{align-items:flex-end}
+.st-lib{grid-area:lib;padding:0}
 .st-agent{grid-area:agent}
-.file{flex-direction:row-reverse;gap:10px}
-.file small{position:static;transform:none;width:auto;padding:0;text-align:right}
-.file small span{display:inline}
-.file small span+span::before{content:" · "}
+.lib{max-width:none;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 12px}
+.lib-rows{flex:1 1 320px;flex-direction:row;flex-wrap:wrap;gap:5px}
+.lib-rows li{padding:4px 10px;border-radius:999px;white-space:nowrap}
+.lib-via small{flex-basis:auto}
+.pa-trace{white-space:normal;align-items:flex-start}
 .pa-result{min-height:0}
 .wall{grid-template-columns:repeat(11,minmax(0,44px));justify-content:space-between}
 .pa-long{display:none}
@@ -547,21 +591,25 @@ details p{padding:0 0 20px}
 .j-head h1{font-size:25px;line-height:1.25}
 .j-sub{display:none}
 .j-cta .pill{padding:5px 12px;font-size:14px}
-.stage{grid-template-columns:1fr 84px auto;column-gap:6px;row-gap:12px;padding:10px;border-radius:20px}
+.stage{grid-template-columns:1fr 84px auto;column-gap:6px;row-gap:12px}
 .bubble{border-radius:14px;padding:7px 12px 8px}
 .bubble-top{display:none}
 .bubble p{margin:0;font-size:15px;line-height:1.4;min-height:2.8em}
 :lang(en) .bubble p{min-height:2.8em}
 .simulate{min-height:40px;padding:8px 14px 8px 10px;font-size:14px;white-space:nowrap}
-.cloud-disc{width:44px;height:44px}
-.cloud-disc svg{width:26px}
+.brand .wordmark{height:30px}
+.cloud-disc{width:46px;height:46px}
+.day-top{font-size:13px;white-space:normal}.day-top p{gap:2px 8px;flex-wrap:wrap}.day-top p>b{font-size:15px}
+.day-lib{display:none!important}
+.day-track{height:28px}
+.day-axis span:nth-child(even){display:none}
+.lib-rows li{font-size:13px;padding:3px 9px}
+.lib-rows li::before{display:none}
 .cloud-text{width:84px;padding-top:5px}
 .cloud-text b{font-size:14px;line-height:1.3;white-space:nowrap}
 .cloud-text small{display:none}
 .pui{font-size:6cqw}
 .pui-entry:last-of-type{display:none}
-.file small span+span{display:none}
-.cloud-file{padding:4px 10px 4px 8px}
 .panel{gap:8px;padding:12px;border-radius:18px}
 .pa-head .tile{width:36px}
 .pa-head b{font-size:15px}

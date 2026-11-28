@@ -1,4 +1,4 @@
-// Website behaviour: the animated Echo marks, the home hero (Watch → iPhone → iCloud → agent), copy buttons,
+// Website behaviour: the animated Echo marks, the home hero (a recorded day: Watch → iCloud → iPhone → library → agent), copy buttons,
 // and the header backdrop on scroll. Bundled into dist/site.js by build.mjs (mark geometry from brand/phemo-mark.mjs).
 import { frame } from "../brand/phemo-mark.mjs";
 document.documentElement.classList.remove("no-js");
@@ -105,13 +105,13 @@ for (const el of document.querySelectorAll("[data-journey]")) {
       const r = q(`[data-anchor="${name}"]`).getBoundingClientRect();
       return { l: r.left - base.left, r: r.right - base.left, t: r.top - base.top, b: r.bottom - base.top, cx: r.left - base.left + r.width / 2, cy: r.top - base.top + r.height / 2, h: r.height };
     };
-    const w = box("watch"), c = box("cloud"), p = box("phone"), f = box("file"), a = box("agent");
+    const w = box("watch"), c = box("cloud"), p = box("phone"), f = box("lib"), a = box("agent");
     const clamp = (y, o) => Math.min(Math.max(y, o.t + Math.min(40, o.h * .2)), o.b - Math.min(40, o.h * .2));
     const h = (x1, y1, x2, y2) => { const dx = Math.max(6, (x2 - x1) * .5); return `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`; };
     const v = (x1, y1, x2, y2) => { const dy = Math.max(3, (y2 - y1) * .5); return `M${x1},${y1} C${x1},${y1 + dy} ${x2},${y2 - dy} ${x2},${y2}`; };
     const d = [h(w.r + 4, clamp(c.cy, w), c.l - 3, c.cy), h(c.r + 3, c.cy, p.l + 1, clamp(c.cy, p))];
     if (f.l >= p.r - 1) d.push(h(p.r - 1, clamp(f.cy, p), f.l - 3, f.cy), h(f.r + 3, f.cy, a.l - 1, clamp(f.cy, a)));
-    else d.push(v(f.cx, p.b + 2, f.cx, f.t - 2), v(f.cx, f.b + 2, f.cx, a.t - 1));
+    else d.push(v(p.cx, p.b + 2, p.cx, f.t - 2), v(p.cx, f.b + 2, p.cx, a.t - 1));
     rails.forEach(([dotted, solid], i) => { dotted.setAttribute("d", d[i]); solid.setAttribute("d", d[i]); });
   };
   const light = (i, on) => rails[i][1].classList.toggle("is-on", on);
@@ -146,6 +146,15 @@ for (const el of document.querySelectorAll("[data-journey]")) {
     q("[data-active-link]").href = `${href}#${agent}`;
     q("[data-case-title]").textContent = u.title;
     q("[data-spoken-time]").textContent = u.time;
+    q("[data-spoken-ctx]").textContent = u.ctx;
+    q("[data-day-label]").textContent = u.dayLabel;
+    q("[data-day-total]").textContent = u.total;
+    q("[data-day-segs]").textContent = u.segs;
+    q("[data-day-time]").textContent = u.at;
+    q("[data-day-now]").style.left = `${u.now}%`;
+    q("[data-day-past]").style.clipPath = `inset(-4px ${100 - u.now}% -4px 0)`;
+    q("[data-phone-total]").textContent = u.today;
+    q("[data-reads]").textContent = u.reads;
     q("[data-phone-time]").textContent = u.time;
     q("[data-prompt-text]").textContent = u.prompt;
     q("[data-copy]").dataset.copy = u.prompt;

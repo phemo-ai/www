@@ -66,64 +66,73 @@ addEventListener("scroll", onScroll, { passive: true });
 onScroll();
 
 /*
- * Opening scene (src/scene.ts). Desktop: scroll position picks a step; CSS dissolves between shots and plays the
- * screen content. Phones and reduced motion: still panels that fade in. Devices themselves never move.
+ * Opening scene (src/scene.ts): one flat page. Each part loops while it is in view:
+ * record — watch face ↔ recording, the iPhone's Today screen filling in; doc — the day file's lines;
+ * agent — the agent name and the lines in the terminal card. Reduced motion: final frames, no loops.
  */
-const STEPS = [0, 0.07, 0.15, 0.23, 0.31, 0.43, 0.59, 0.75, 0.9];
-const REVEAL = ["23.5%", "23.5%", "44%", "61%", "85.7%"];
-const stageEl = document.querySelector("[data-scene]");
-const sticky = stageEl?.closest(".sc-sticky");
-const rotate = (root, ms) => {
-  const titles = [...root.querySelectorAll(".an")];
-  const strip = [...root.querySelectorAll(".as")];
-  let k = 0, timer = null;
-  const show = () => {
-    const id = titles[k % titles.length]?.dataset.agent;
-    titles.forEach((t) => t.classList.toggle("is-on", t.dataset.agent === id));
-    strip.forEach((t) => t.classList.toggle("is-on", t.dataset.agent === id));
-    k++;
+const REVEAL = ["23.5%", "44%", "61%", "85.7%"];
+const loops = new Map();
+/*
+ * The interactive watch. States: idle (face, not recording) → app (recording screen) → face (face, still
+ * recording) → app … The demo advances by itself; a tap, a crown press or a tap on the screen takes over, and the
+ * demo resumes after 8 s of no input. A hint bubble says what to try next, and a pulse marks the target.
+ */
+const record = (el) => {
+  const watch = el.querySelector(".live"), reveal = el.querySelector(".reveal");
+  const hints = JSON.parse(el.dataset.hints || "[]");
+  const hint = el.querySelector("[data-hint]");
+  let pulse = el.querySelector(".pulse");
+  if (!pulse && watch) { pulse = document.createElement("span"); pulse.className = "pulse comp"; watch.appendChild(pulse); }
+  let state = "idle", step = 0, auto = null, resume = null, demo = true;
+  const show = (st) => {
+    state = st;
+    if (!watch) return;
+    watch.dataset.state = st === "app" ? "app" : "face";
+    watch.dataset.rec = st === "idle" ? "0" : "1";
+    el.classList.toggle("talking", st !== "idle");
+    const h = st === "idle" ? [hints[0], "comp"] : st === "app" ? [hints[2], "crown"] : [hints[3], "comp"];
+    if (hint) { hint.textContent = h[0] ?? ""; hint.className = "hint on" + (h[1] === "crown" ? " crown" : ""); }
+    if (pulse) pulse.className = "pulse " + h[1];
   };
-  return { start() { if (!timer) { show(); timer = setInterval(show, ms); } }, stop() { clearInterval(timer); timer = null; } };
+  const progress = () => { if (reveal && state !== "idle") { step = Math.min(3, step + 1); reveal.style.top = REVEAL[step]; } };
+  const next = () => (state === "idle" ? "app" : state === "app" ? "face" : "app");
+  const tick = () => { show(next()); progress(); auto = setTimeout(tick, state === "app" ? 3800 : 3200); };
+  const start = () => { if (!auto) { if (demo) { show("idle"); step = 0; if (reveal) reveal.style.top = REVEAL[0]; } auto = setTimeout(tick, 2400); } };
+  const stop = () => { clearTimeout(auto); auto = null; };
+  const user = (st) => {
+    stop(); clearTimeout(resume); demo = false;
+    show(st); progress();
+    if (hint && state === "app") { setTimeout(() => { if (state === "app") hint.textContent = hints[1] ?? ""; }, 1800); setTimeout(() => { if (state === "app") hint.textContent = hints[2] ?? ""; }, 4200); }
+    resume = setTimeout(() => { demo = false; start(); }, 8000);
+  };
+  const press = () => { watch?.classList.add("press"); setTimeout(() => watch?.classList.remove("press"), 170); };
+  el.addEventListener("click", (e) => {
+    const act = e.target.closest?.("[data-act]")?.dataset.act;
+    if (!act) return;
+    if (act === "comp") user("app");
+    else if (act === "crown") { press(); user(state === "app" ? "face" : "app"); }
+    else if (act === "screen") { watch?.classList.remove("marked"); void watch?.offsetWidth; watch?.classList.add("marked"); user("app"); }
+  });
+  return { start, stop: () => { stop(); clearTimeout(resume); } };
 };
-if (stageEl && sticky && getComputedStyle(sticky).display !== "none") {
-  const caps = JSON.parse(stageEl.dataset.caps || "[]");
-  const cap = stageEl.querySelector("[data-cap]");
-  const shots = [...stageEl.querySelectorAll(".shot")];
-  const watch = stageEl.querySelector(".s1 .live");
-  const reveal = stageEl.querySelector(".s1 .reveal");
-  const agents = rotate(stageEl.querySelector(".s4"), 1500);
-  let step = -1;
-  const shotFor = (s) => (s <= 4 ? 0 : s === 5 ? 1 : s === 6 ? 2 : 3);
-  const apply = (s) => {
-    stageEl.dataset.step = String(s);
-    shots.forEach((el, i) => el.classList.toggle("on", i === shotFor(s)));
-    if (watch) watch.dataset.state = s === 1 ? "app" : "face";
-    if (reveal) reveal.style.top = REVEAL[Math.min(s, 4)];
-    if (cap) { cap.classList.add("out"); setTimeout(() => { cap.textContent = caps[s] ?? ""; cap.classList.remove("out"); }, 220); }
-    s >= 7 ? agents.start() : agents.stop();
-  };
-  const onScroll = () => {
-    const r = sticky.getBoundingClientRect();
-    const p = Math.min(1, Math.max(0, -r.top / Math.max(1, r.height - innerHeight)));
-    let s = 0;
-    STEPS.forEach((t, i) => { if (p >= t) s = i; });
-    if (s !== step) { step = s; apply(s); }
-  };
-  let ticking = false;
-  addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(() => { ticking = false; onScroll(); }); } }, { passive: true });
-  addEventListener("resize", onScroll);
-  onScroll();
+const once = (el) => ({ start() { el.classList.add("in"); }, stop() {} });
+const agentLoop = (el, strip) => {
+  const titles = [...el.querySelectorAll(".an")], marks = [...strip.querySelectorAll(".as")];
+  let k = 0, t = null;
+  const show = () => { const id = titles[k % titles.length]?.dataset.agent; titles.forEach((x) => x.classList.toggle("is-on", x.dataset.agent === id)); marks.forEach((x) => x.classList.toggle("is-on", x.dataset.agent === id)); k++; };
+  return { start() { el.classList.add("in"); if (!t) { show(); t = setInterval(show, 1500); } }, stop() { clearInterval(t); t = null; } };
+};
+for (const el of document.querySelectorAll("[data-loop]")) {
+  const kind = el.dataset.loop;
+  loops.set(el, kind === "record" ? record(el) : kind === "agent" ? agentLoop(el, el.closest(".row").querySelector(".astrip")) : once(el));
 }
-const story = document.querySelector(".sc-story");
-if (story && getComputedStyle(story).display !== "none") {
-  const panels = [...story.querySelectorAll(".panel")];
-  if (reduce) panels.forEach((p) => p.classList.add("in"));
-  else {
-    const io2 = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io2.unobserve(e.target); } }), { threshold: 0.2 });
-    panels.forEach((p) => io2.observe(p));
-    const last = panels[panels.length - 1];
-    if (last) rotate(last, 1500).start();
-  }
+if (reduce) {
+  for (const [el, l] of loops) { el.classList.add("in", "talking"); if (el.dataset.loop === "agent") el.querySelector(".an")?.classList.add("is-on"); const r = el.querySelector(".reveal"); if (r) r.style.top = "85.7%"; const w = el.querySelector(".live"); if (w) { w.dataset.state = "app"; w.dataset.rec = "1"; } const h = el.querySelector("[data-hint]"); if (h) { const hs = JSON.parse(el.dataset.hints || "[]"); h.textContent = hs[2] ?? ""; h.className = "hint on crown"; } }
+  // Reduced motion: the watch still responds to taps, without the demo.
+  for (const [el, l] of loops) if (el.dataset.loop === "record") { /* click handlers were attached in record() */ }
+} else if (loops.size) {
+  const io = new IntersectionObserver((es) => es.forEach((e) => { const l = loops.get(e.target); if (l) e.isIntersecting ? l.start() : l.stop(); }), { threshold: 0.25 });
+  loops.forEach((_, el) => io.observe(el));
 }
 
 /* Copy buttons (agents page): copy the command or config, then confirm for a moment. */

@@ -14,28 +14,37 @@ function pic(src: string, alt: string, cls: string, lazy = true) {
 
 const MIC = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M6 11a6 6 0 0 0 12 0M12 17v3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 
-/** The watch face: time, date, the Phemo complication and the microphone indicator. */
+/** The watch face: time, date, the Phemo complication and (while recording) the microphone indicator. */
 function face(zh: boolean) {
   return `<div class="wface" aria-hidden="true">
 <span class="wmic">${MIC}</span>
 <span class="fdate">${zh ? "周四 27" : "THU 27"}</span>
 <span class="ftime">10:09</span>
-<span class="fcomp"><svg data-mark data-state="speak" data-weight="1.25" viewBox="0 0 120 120"></svg></span>
-<span class="fcap">${zh ? "Phemo · 录音中" : "Phemo · Recording"}</span>
+<button type="button" class="fcomp" data-act="comp" aria-label="Phemo"><svg data-mark data-state="speak" data-weight="1.25" viewBox="0 0 120 120"></svg></button>
+<span class="fcap"><i class="rec">${zh ? "Phemo · 录音中" : "Phemo · Recording"}</i><i class="idle">Phemo</i></span>
 </div>`;
 }
 
-/** The recording screen with the animated mark, and the watch face behind it (data-state=face|app). */
-export function liveWatch(lang: Lang, opts: { lazy?: boolean } = {}) {
+/**
+ * The watch: recording screen (CI screenshot, mark painted out, animated mark on top) over the watch face.
+ * data-state="face" | "app", data-rec="1" while recording. Interactive: the complication, the screen and the
+ * crown are buttons; the hint bubble (data-hint) is filled in by site-client/main.mjs.
+ */
+export function liveWatch(lang: Lang, opts: { lazy?: boolean; interactive?: boolean } = {}) {
   const zh = lang === "zh";
   const lazy = opts.lazy ?? true;
   const alt = zh ? "Apple Watch 上的 Phemo：正在录制说话，已录 2 小时 13 分，2 个标记" : "Phemo on Apple Watch: recording speech, 2 h 13 min, 2 marks";
-  return `<figure class="dev watch live">
+  const bezel = opts.interactive ? "/bezels/watch-s11-46-natural-nocrown" : "/bezels/watch-s11-46-natural";
+  const extra = opts.interactive
+    ? `<button type="button" class="crown" data-act="crown" aria-label="${zh ? "按一下表冠" : "Press the Digital Crown"}">${pic("/bezels/watch-crown", "", "cimg", lazy)}</button><span class="hint" data-hint aria-live="polite"></span><span class="flag" aria-hidden="true">⚑ ${zh ? "已标记" : "Marked"}</span>`
+    : "";
+  const screen = opts.interactive ? `<button type="button" class="tapscr" data-act="screen" aria-label="${zh ? "轻点标记" : "Tap to mark"}"></button>` : "";
+  return `<figure class="dev watch live" data-state="face" data-rec="1"${opts.interactive ? " data-watch" : ""}>
 <div class="scrwrap">
 ${face(zh)}
-<div class="wapp">${pic(`/screens/watch-rec-nomark-${lang}`, alt, "scr", lazy)}<svg class="wmark2" data-mark data-state="speak" data-weight="1.15" viewBox="0 0 120 120" aria-hidden="true"></svg></div>
+<div class="wapp">${pic(`/screens/watch-rec-nomark-${lang}`, alt, "scr", lazy)}<svg class="wmark2" data-mark data-state="speak" data-weight="1.15" viewBox="0 0 120 120" aria-hidden="true"></svg>${screen}</div>
 </div>
-${pic("/bezels/watch-s11-46-natural", "", "bez", lazy)}
+${pic(bezel, "", "bez", lazy)}${extra}
 </figure>`;
 }
 

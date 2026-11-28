@@ -24,6 +24,7 @@ interface Copy {
   doc: { crumb: string; files: string[]; title: string; sumH: string; sum: string; todoH: string; todos: string[]; trH: string; tr: [string, string][] };
   term: string[]; agentsLabel: string;
   panels: [string, string][];
+  hints: string[];
 }
 
 const COPY: Record<Lang, Copy> = {
@@ -39,7 +40,8 @@ const COPY: Record<Lang, Copy> = {
     doc: { crumb: "iCloud 云盘 › Phemo › 2026 › 11", files: ["2026-11-25.md", "2026-11-26.md", "2026-11-27.md", "todos.md"], title: "2026-11-27", sumH: "总结", sum: "上午站会确认 iOS 版本中午前发到 TestFlight；合同付款条款改为 30 天，周五前发给张经理。", todoH: "待办", todos: ["把修改后的合同发给张经理（周五）", "和设计组确认新手引导文案（周四）"], trH: "转写", tr: [["10:02", "iOS 版本中午前发到 TestFlight。"], ["14:31", "付款条款改成 30 天吧。"]] },
     term: ["› 读取 Phemo/2026/11/2026-11-27.md", "✓ 提醒事项：周五前把合同发给张经理", "✓ 日历：周一 15:00 陈医生复诊"],
     agentsLabel: "可以连接的 agent",
-    panels: [["手表录音，iPhone 本地转写", "放下手腕回到表盘，录音继续；说完一段，iPhone 在本地转成文字，整理出要点和待办。"], ["存进你自己的 iCloud", "内容只在你的 Apple 账户里。"], ["iPad 上也有同一份", "每天一个 Markdown 文件，放在 iCloud 云盘。"], ["你的 agent 接手", "Mac 上的 agent 读取当天的文件，帮你跟进。"]],
+    hints: ["试试：点一下表盘上的 Phemo", "轻点屏幕可以标记重点", "按一下表冠，回到表盘", "录音还在继续。再点 Phemo 就回来"],
+    panels: [["手表录音，iPhone 本地转写", "放下手腕回到表盘，录音继续；说完一段，iPhone 在本地转成文字，整理出要点和待办。"], ["存进你自己的 iCloud", "内容只在你的 Apple 账户里。"], ["同一份笔记，出现在你的 iPad 和 Mac 上", "每天一个 Markdown 文件，放在 iCloud 云盘。"], ["你的 agent 接手", "Mac 上的 agent 读取当天的文件，帮你跟进。"]],
   },
   en: {
     tag: "What you said.<br>In your iCloud.<br>For your agent.",
@@ -53,7 +55,8 @@ const COPY: Record<Lang, Copy> = {
     doc: { crumb: "iCloud Drive › Phemo › 2026 › 11", files: ["2026-11-25.md", "2026-11-26.md", "2026-11-27.md", "todos.md"], title: "2026-11-27", sumH: "Summary", sum: "Stand-up: iOS build to TestFlight by noon. Contract payment terms now 30 days, to Mr. Zhang by Friday.", todoH: "To-dos", todos: ["Send the revised contract to Mr. Zhang (Fri)", "Confirm onboarding copy with design (Thu)"], trH: "Transcript", tr: [["10:02", "iOS build goes to TestFlight by noon."], ["14:31", "Let's make the terms 30 days."]] },
     term: ["› read Phemo/2026/11/2026-11-27.md", "✓ Reminder: contract to Mr. Zhang, Friday", "✓ Calendar: Dr. Chen, Monday 3 pm"],
     agentsLabel: "Agents you can connect",
-    panels: [["Your watch records, your iPhone transcribes", "Lower your wrist and recording carries on; each chunk is transcribed on your iPhone and sorted into highlights and to-dos."], ["Kept in your own iCloud", "Only in your Apple Account."], ["The same notes on iPad", "One Markdown file a day in iCloud Drive."], ["Your agent takes over", "The agent on your Mac reads the day's file and follows up."]],
+    hints: ["Try it: tap Phemo on the watch face", "Tap the screen to mark a moment", "Press the crown to go back to your face", "Still recording. Tap Phemo to come back"],
+    panels: [["Your watch records, your iPhone transcribes", "Lower your wrist and recording carries on; each chunk is transcribed on your iPhone and sorted into highlights and to-dos."], ["Kept in your own iCloud", "Only in your Apple Account."], ["The same notes on your iPad and Mac", "One Markdown file a day in iCloud Drive."], ["Your agent takes over", "The agent on your Mac reads the day's file and follows up."]],
   },
 };
 
@@ -85,29 +88,17 @@ function echo(cls: string) {
 
 export function scene(lang: Lang) {
   const c = COPY[lang];
+  const P = c.panels;
   const intro = `<div class="sc-intro"><h1>${c.tag}</h1><p class="sub">${esc(c.sub)}</p><span class="pill">${c.soon}</span></div>`;
   const cloud = `<div class="cloudmark"><span class="ring"></span><span class="lk">${LOCK}</span><b>${c.cloud}</b><small>${c.cloudSub}</small><pre class="tree">${c.tree.map((t, i) => `<span style="--i:${i}">${esc(t)}</span>`).join("\n")}</pre></div>`;
-
-  // Desktop: sticky stage, one shot at a time.
-  const stage = `<div class="sc-sticky"><div class="sc-stage" data-scene data-step="0" data-caps="${esc(JSON.stringify(c.caps))}">
-${intro}
-<div class="shot s1"><div class="pair1">${liveWatch(lang, { lazy: false })}<div class="gap">${echo("g1")}</div>${iphone(lang, c)}</div></div>
-<div class="shot s2">${cloud}</div>
-<div class="shot s3"><div class="pair2">${ipad(c)}${mac(c)}</div></div>
-<div class="shot s4"><div class="pair3">${agentCard(c)}${mac(c)}</div>${agentStrip(c)}</div>
-<p class="sc-cap"><span data-cap>${c.caps[0]}</span></p>
-</div></div>`;
-
-  // Phones and reduced motion: the same story as still panels, devices shown one kind at a time.
-  const P = c.panels;
-  const story = `<div class="sc-story">
-${intro}
-<div class="panel"><div class="pstack">${liveWatch(lang, { lazy: true })}${iphone(lang, c).replace('class="reveal"', 'class="reveal done"')}</div><h3>${P[0]![0]}</h3><p>${P[0]![1]}</p></div>
-<div class="panel">${cloud.replace('class="cloudmark"', 'class="cloudmark done"')}<h3>${P[1]![0]}</h3><p>${P[1]![1]}</p></div>
-<div class="panel">${ipad(c)}<h3>${P[2]![0]}</h3><p>${P[2]![1]}</p></div>
-<div class="panel">${mac(c)}${agentCard(c).replace('class="acard"', 'class="acard done"')}${agentStrip(c)}<h3>${P[3]![0]}</h3><p>${P[3]![1]}</p></div>
-<p class="fine">${c.fine}</p>
-</div>`;
-
-  return `<section class="scene" aria-label="${lang === "zh" ? "Phemo 如何工作" : "How Phemo works"}">${stage}${story}</section>`;
+  // One flat page: every part is on it at once; each part's animation loops in place while it is in view.
+  return `<section class="scene" aria-label="${lang === "zh" ? "Phemo 如何工作" : "How Phemo works"}">
+<div class="row r1"><div class="wrap r1g">${intro}<div class="pair1" data-loop="record" data-hints="${esc(JSON.stringify(c.hints))}">${liveWatch(lang, { lazy: false, interactive: true })}<div class="gap">${echo("g1")}</div>${iphone(lang, c)}</div></div>
+<p class="rcap"><b>${P[0]![0]}</b><span>${P[0]![1]}</span></p></div>
+<div class="row r2"><div class="wrap">${cloud}<p class="rcap"><b>${P[1]![0]}</b><span>${P[1]![1]}</span></p></div></div>
+<div class="row r3"><div class="wrap"><div class="pair2" data-loop="doc">${ipad(c)}${mac(c)}</div>
+<p class="rcap"><b>${P[2]![0]}</b><span>${P[2]![1]}</span></p></div></div>
+<div class="row r4"><div class="wrap"><div class="pair3" data-loop="agent">${agentCard(c)}<p class="rcap side"><b>${P[3]![0]}</b><span>${P[3]![1]}</span></p></div>${agentStrip(c)}
+<p class="fine">${c.fine}</p></div></div>
+</section>`;
 }

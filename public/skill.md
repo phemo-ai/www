@@ -25,7 +25,7 @@ PHEMO_DIR="${PHEMO_DIR:-$HOME/Library/Mobile Documents/iCloud~ai~phemo~app/Docum
 ls "$PHEMO_DIR"/*/*/ | tail        # newest days last
 ```
 
-A file named `.2026-11-24.md.icloud` is a placeholder: iCloud has not downloaded that day to this Mac. Run `brctl download "<path to the placeholder's real name>"` (or ask the user to open the folder in Finder), then read it.
+iCloud may not have downloaded a day to this Mac yet. Reading the file normally fetches it. If the read fails with `Resource deadlock avoided`, or the folder holds a placeholder named `.2026-11-24.md.icloud`, run `brctl download "<path of the day file>"` (or ask the user to open the folder in Finder), wait a few seconds and read it again.
 
 If the folder does not exist, tell the user to open Phemo on their iPhone once (it writes the files) and to check that iCloud Drive is on for this Mac. Do not look for the data anywhere else.
 

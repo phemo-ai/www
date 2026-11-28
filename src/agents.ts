@@ -6,6 +6,7 @@
  * VS Code vscode.dev/redirect/mcp/install, Goose goose://extension, Cherry Studio cherrystudio://mcp/install.
  */
 import { ICONS } from "./icons";
+import { useCases } from "./usecases";
 
 type Lang = "zh" | "en";
 
@@ -86,8 +87,9 @@ export function agentsDirectory(lang: Lang) {
     ? "读取 https://phemo.app/skill.md，把它装成你的 skill，然后看看我今天在 Phemo 里说了什么。"
     : "Read https://phemo.app/skill.md, install it as a skill, then look at what I said today in Phemo.";
   return `<div class="agents-dir">
+${useCases(lang, true)}
 <h2>${zh ? "一键连接" : "Connect in one step"}</h2>
-<p>${zh ? "在 iPhone 的 Phemo「AI 助手」里点一个 agent，Mac 上会通过接力或隔空投送打开这里对应的一项。按钮直接添加；命令粘贴到终端运行一次即可。所有 agent 都用同一个只读的本地服务 <span class=\"inline\">npx -y @phemo/mcp</span>（需要 Node 20+）。" : "Tap an agent in Phemo's “AI assistants” on your iPhone and your Mac opens the matching entry here (Handoff or AirDrop). Buttons add it directly; commands run once in Terminal. Every agent uses the same read-only local server <span class=\"inline\">npx -y @phemo/mcp</span> (Node 20+)."}</p>
+<p>${zh ? "在 iPhone 的 Phemo「连接你的 agent」里点一个 agent，Mac 上会通过接力或隔空投送打开这里对应的一项。按钮直接添加；命令粘贴到终端运行一次即可。所有 agent 都用同一个只读的本地服务 <span class=\"inline\">npx -y @phemo/mcp</span>（需要 Node 20+）。" : "Tap an agent in Phemo's “Connect your agent” on your iPhone and your Mac opens the matching entry here (Handoff or AirDrop). Buttons add it directly; commands run once in Terminal. Every agent uses the same read-only local server <span class=\"inline\">npx -y @phemo/mcp</span> (Node 20+)."}</p>
 <h3 class="grp">${zh ? "国际" : "International"}</h3><div class="agent-grid">${group("intl")}</div>
 <h3 class="grp">${zh ? "国内" : "China"}</h3><div class="agent-grid">${group("cn")}</div>
 <h3 class="grp">${zh ? "其他 agent" : "Any other agent"}</h3>
@@ -95,17 +97,15 @@ export function agentsDirectory(lang: Lang) {
 <section class="agent-card" id="skill"><header><h3>${zh ? "能读网页、能写文件的 agent" : "Agents that read the web and write files"}</h3><span class="form">Skill</span></header><p class="how">${zh ? "把这句话发给它：" : "Send it this:"}</p><div class="cmdline"><code>${esc(prompt)}</code>${copyBtn(prompt, zh)}</div></section>
 <section class="agent-card" id="mcp-json"><header><h3>${zh ? "支持 MCP 的其他工具" : "Other MCP clients"}</h3><span class="form">MCP</span></header><div class="cfg"><pre>${esc(MCP_JSON)}</pre>${copyBtn(MCP_JSON, zh)}</div></section>
 </div>
-<p class="fine">${zh ? "工具名称和标志归各自所有者所有，这里只表示 Phemo 可以与它们配合使用。" : "Tool names and marks belong to their owners and are shown only to say Phemo works with them."} ${zh ? "各家工具的设置入口会随版本变化；按钮不起作用时，用卡片里的 JSON 配置。只在网页里运行的 AI 读不到你 Mac 上的文件，可以在 iPhone 上把某一天的 Markdown 分享给它。" : "Settings menus change between versions; if a button doesn't work, use the card's JSON. AI that only runs in a web page can't read files on your Mac — share a day's Markdown to it from your iPhone instead."}</p>
+<p class="fine">${zh ? "工具名称和标志归各自所有者所有，这里仅说明兼容性，不代表官方背书或合作关系。" : "Tool names and marks belong to their owners. These are compatibility references; no endorsement or partnership is implied."} ${zh ? "各家工具的设置入口会随版本变化；按钮不起作用时，用卡片里的 JSON 配置。只在网页里运行的 AI 读不到你 Mac 上的文件，可以在 iPhone 上把某一天的 Markdown 分享给它。" : "Settings menus change between versions; if a button doesn't work, use the card's JSON. AI that only runs in a web page can't read files on your Mac — share a day's Markdown to it from your iPhone instead."}</p>
 </div>`;
 }
 
-/** Agent → Simple Icons slug; agents without a published mark show their name only. */
-const MARK: Record<string, string> = {
-  "claude-code": "claude", "claude-desktop": "claude", cursor: "cursor", vscode: "githubcopilot", windsurf: "windsurf",
-  "gemini-cli": "googlegemini", zed: "zedindustries", cline: "cline", "lm-studio": "lmstudio", jetbrains: "jetbrains",
-  codebuddy: "codebuddy", trae: "trae", "kimi-code": "kimi", "qwen-code": "qwen", comate: "baidu",
-};
-export function agentMark(id: string, size = 18) {
+/** Only reviewed marks render; all other agents appear by name. See NOTICE.md. */
+const MARK: Record<string, string> = { zed: "zedindustries" };
+export function agentMark(id: string, size = 20) {
+  if (id === "windsurf") return `<span class="amark official-mark" style="width:${size}px;height:${size}px" aria-hidden="true"><img class="mark-black" src="/agent-marks/windsurf-black.svg" width="${size}" height="${size}" alt=""><img class="mark-white" src="/agent-marks/windsurf-white.svg" width="${size}" height="${size}" alt=""></span>`;
+  if (id === "lm-studio") return `<span class="amark lm-mark" aria-hidden="true"><img src="/agent-marks/lmstudio-white.svg" width="${size}" height="${size}" alt=""></span>`;
   const slug = MARK[id];
   const icon = slug ? ICONS[slug] : undefined;
   return icon ? `<svg class="amark" viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true"><path d="${icon.d}" fill="currentColor"/></svg>` : "";

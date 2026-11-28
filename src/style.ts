@@ -75,7 +75,7 @@ a.pill:hover{opacity:.88}
 .feat .vis{min-height:300px;flex:1;display:grid;place-items:center;margin-bottom:18px;border-radius:14px}
 .feat>h3{font-size:18px;font-weight:400;line-height:1.4;padding:0 4px}
 .feat>p{margin-top:6px;font-size:14.5px;line-height:1.7;color:var(--ink2);padding:0 4px}
-.feat .watch{--ww:180px}
+.feat .watch{--ww:200px}
 @media (max-width:1060px){.fgrid{grid-template-columns:1fr 1fr}}
 @media (max-width:640px){.fgrid{grid-template-columns:1fr}.feat .vis{min-height:220px;padding:8px 0}}
 
@@ -242,123 +242,188 @@ details p{padding:0 0 20px}
 .agents-dir .fine{margin-top:22px;font-size:13px;color:var(--mute)}
 .doc.wide .agents-dir{padding:0}
 
-/* Interactive watch: crown (own image, presses in), tappable screen, hint bubble, mark flash. */
-.crown{position:absolute;z-index:2;left:93.93%;top:31.82%;width:6.07%;height:11.82%;padding:0;border:0;background:none;cursor:pointer;transition:transform .12s ease,filter .2s}
-.crown picture,.crown img{display:block;width:100%;height:100%}
-.crown:hover{filter:brightness(1.18)}
-.live.press .crown{transform:translateX(-26%);filter:brightness(.85)}
-.tapscr{position:absolute;inset:0;border:0;background:transparent;cursor:pointer}
-.live .scrwrap{cursor:pointer}
-.hint{position:absolute;z-index:3;left:50%;top:-14px;transform:translate(-50%,-100%);white-space:nowrap;font-size:12.5px;line-height:1;color:var(--paper);background:var(--ink);border-radius:999px;padding:7px 12px;opacity:0;transition:opacity .4s}
-.hint::after{content:"";position:absolute;left:50%;bottom:-5px;width:9px;height:9px;margin-left:-4px;background:var(--ink);transform:rotate(45deg)}
-.hint.on{opacity:1}
-.hint.crown{left:auto;right:-8px;top:37.6%;transform:translate(100%,-50%)}
-.hint.crown::after{left:-4px;bottom:auto;top:50%;margin:-4px 0 0}
-.live[data-state=face] .hint.face,.live[data-state=app] .hint.app{opacity:1}
-.ring2{position:absolute;z-index:2;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;border:1.5px solid var(--ink);opacity:0;pointer-events:none}
-.flag{position:absolute;z-index:3;left:50%;top:44%;transform:translate(-50%,-50%) scale(.6);font-size:13px;color:#fff;background:rgba(27,43,44,.85);border-radius:999px;padding:6px 12px;opacity:0;pointer-events:none}
-.live.marked .flag{animation:flag 1.1s ease-out}
-@keyframes flag{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}20%{opacity:1;transform:translate(-50%,-50%) scale(1)}70%{opacity:1}100%{opacity:0;transform:translate(-50%,-70%) scale(1)}}
-.pulse{position:absolute;z-index:3;border-radius:50%;border:1.5px solid var(--ink);opacity:0;pointer-events:none;animation:beckon 1.8s ease-out infinite}
-@keyframes beckon{0%{opacity:.75;transform:scale(.5)}100%{opacity:0;transform:scale(1.6)}}
-.pulse.comp{left:50%;top:calc(21.8182% + 56.3636% * .755);width:32px;height:32px;margin:-16px 0 0 -16px}
-.pulse.crown{left:97%;top:37.7%;width:26px;height:26px;margin:-13px 0 0 -13px}
-.pulse.screen{left:50%;top:50%;width:40px;height:40px;margin:-20px 0 0 -20px}
-.pair1{padding-top:34px}
-@media (prefers-reduced-motion:reduce){.pulse{animation:none;opacity:.6}}
+/* Fixed Apple artwork; screen-only, touch and keyboard controls. */
+.dev .bez{pointer-events:none}
+.live .wapp{transition:opacity .25s ease;transform:none}
+.live[data-state=face] .wapp{transform:none;opacity:0;pointer-events:none}
+.wface{transform:none;transition:opacity .25s ease}
+.live[data-state=app] .wface{pointer-events:none}
+.crown{position:absolute;z-index:3;left:92%;top:30%;width:10%;height:16%;min-width:44px;min-height:44px;padding:0;border:0;background:transparent;cursor:pointer}
+.crown:focus-visible{outline:2px solid var(--ink);outline-offset:5px}
+.tapscr:focus-visible{outline:2px solid #fff;outline-offset:-5px}
+.tapscr{position:absolute;inset:0;border:0;background:transparent;cursor:pointer;border-radius:26%}
+.watch-hint{position:absolute;left:50%;top:100%;width:300px;max-width:90vw;transform:translateX(-50%);text-align:center;font-size:14px;line-height:1.5;color:var(--ink2);padding:12px 0;transition:opacity .2s}
+.watch-hint.dismissed{opacity:0}
+.flag{position:absolute;z-index:3;left:50%;top:47%;transform:translate(-50%,-50%);white-space:nowrap;font-size:14px;color:#fff;background:#1B2B2C;border-radius:999px;padding:6px 12px;opacity:0;pointer-events:none}
+.live.marked .flag{opacity:1}
 
-/* Opening scene (src/scene.ts): one flat page, every part visible, animations loop in place. */
-.scene{padding-top:92px}
-.row{padding:clamp(40px,5vw,72px) 0}
+/* All scenes are present at load; scrolling never controls the content. */
+.home main{padding-top:68px}
+.scene{padding-top:24px}
+.row{padding:64px 0}
 .row+.row{border-top:1px solid var(--line)}
-.r1{padding-top:clamp(16px,3vw,40px)}
-.r1g{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:clamp(24px,4vw,64px)}
-.sc-intro{text-align:left}
-.sc-intro h1{font-size:clamp(32px,3.4vw,52px);line-height:1.22;letter-spacing:-.01em}
-:lang(zh-Hans) .sc-intro h1{line-height:1.3}
-.sc-intro .sub{max-width:30em;margin:16px 0 0;color:var(--ink2);font-size:clamp(15px,1.15vw,17px);line-height:1.7}
-.sc-intro .pill{margin-top:20px;padding:9px 18px;font-size:13px}
-.rcap{max-width:1240px;margin:28px auto 0;padding:0 var(--pad);text-align:center;font-size:15px;line-height:1.6;color:var(--ink2)}
-.rcap b{display:block;font-weight:500;font-size:18px;color:var(--ink);margin-bottom:4px}
-.rcap.side{margin:0;padding:0;text-align:left;max-width:22em}
-.pair1,.pair2,.pair3{display:flex;align-items:flex-end;justify-content:center}
-.pair1{--ph:min(300px,28vw)}
+.r1{padding-top:16px}
+.r1g{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:32px}
+.sc-intro h1{font-size:clamp(34px,3.3vw,50px);line-height:1.22;letter-spacing:-.025em}
+:lang(zh-Hans) .sc-intro h1{line-height:1.35}
+.sc-intro .sub{max-width:29em;margin-top:22px;color:var(--ink2);font-size:17px;line-height:1.75}
+.sc-intro .pill{margin-top:24px;font-size:14px}
+.rcap{max-width:900px;margin:38px auto 0;padding:0 var(--pad);text-align:center;font-size:15px;line-height:1.75;color:var(--ink2)}
+.rcap b{display:block;font-weight:500;font-size:22px;color:var(--ink);margin-bottom:8px}
+.rcap.side{margin:0;padding:0;text-align:left;max-width:20em}
+.pair1,.pair2,.pair3{display:flex;align-items:center;justify-content:center}
+.pair1{--ph:350px;gap:16px;padding-bottom:48px}
 .pair1 .iphone{--pw:var(--ph);width:var(--ph)}
 .pair1 .watch{--ww:calc(var(--ph) * .5853)}
-.pair1 .gap{width:clamp(56px,6vw,96px);align-self:center;display:grid;place-items:center}
-.echo{width:56px;height:56px;opacity:0;transition:opacity .6s}
+.pair1 .gap{width:32px;display:grid;place-items:center}
+.echo{width:32px;height:48px;opacity:.4;transition:opacity .3s}
 .echo path{fill:none;stroke:var(--ink);stroke-width:3;stroke-linecap:round}
 .pair1.talking .echo{opacity:1}
 .echo .e1{animation:ech 1.6s ease-in-out infinite}.echo .e2{animation:ech 1.6s ease-in-out .25s infinite}
 @keyframes ech{0%,100%{opacity:.15}45%{opacity:1}}
-/* iPhone: the real Today screen fills in section by section (cards at 23.5 / 44 / 61 / 85.7 % of the screen). */
 .sc-phone .scr{overflow:hidden}
 .sc-phone .simg{position:absolute;inset:0}
-.reveal{position:absolute;left:0;right:0;top:85.7%;bottom:14.3%;background:#F2F2F7;transition:top 1.1s cubic-bezier(.22,.61,.36,1)}
-.reveal.done{display:none}
-/* iPad Pro 11" and MacBook Air 13" (Apple bezels), correct relative size: iPad image = 0.7838 × MacBook image. */
-.ipadf,.macf{flex:none}
-.pair2{--mw:min(640px,46vw);align-items:flex-end}
+/* Simultaneously shown iPad and Mac retain Apple's relative scale. */
+.pair2{--mw:min(600px,45vw);align-items:flex-end;gap:32px}
 .pair2 .macf{width:var(--mw)}
-.pair2 .ipadf{width:calc(var(--mw) * .7838);margin-right:clamp(24px,3vw,56px)}
+.pair2 .ipadf{width:calc(var(--mw) * .7838)}
 .ipadf .scr{left:4.1667%;top:5.6383%;width:91.6667%;height:88.7234%;border-radius:2.56%/3.72%;background:#fff}
 .macf .scr{left:12.3529%;top:12.8571%;width:75.2941%;height:74.2857%;background:#fff}
-.docscr{position:absolute;inset:0;container-type:size;display:flex;flex-direction:column;background:#fff;color:#1D1D1F;font-family:-apple-system,"SF Pro Text","Inter","PingFang SC",sans-serif}
-.dbar{flex:none;height:9cqh;display:flex;align-items:center;padding:0 3.5cqw;font-size:3.2cqh;color:#6E6E73;border-bottom:1px solid #ECECEF}
-.on-mac .dbar{padding-top:2.2cqh;height:10cqh}
-.dbody{flex:1;display:flex;min-height:0}
-.dfiles{width:24%;margin:0;padding:2.6cqh 1.4cqw;list-style:none;background:#F7F7F9;font-size:3.1cqh;color:#3A3A3C}
-.dfiles li{padding:1.1cqh 1.2cqw;border-radius:1cqh}
-.dfiles li.on{background:#E4E4E9;color:#1D1D1F}
-.dpage{flex:1;padding:4cqh 4.5cqw;font:3.3cqh/1.55 var(--mono);color:#2C2C2E;overflow:hidden}
-.dpage h4{font:600 4.6cqh/1.3 var(--mono);margin:0 0 1.6cqh}
-.dpage h5{font:500 3.3cqh/1.4 var(--mono);color:#6E6E73;margin:2.4cqh 0 .6cqh}
-.dpage>*{opacity:0;transform:translateY(.8cqh);transition:opacity .5s ease,transform .5s ease}
-.pair2.in .dpage>*{opacity:1;transform:none;transition-delay:calc(.2s + var(--n,0) * .12s)}
-/* iCloud: lock + name, the folder as it sits in iCloud Drive. */
+.docscr{position:absolute;inset:0;container-type:size;display:flex;flex-direction:column;background:#fff;color:#1D1D1F;font-family:var(--sans)}
+.dbar{flex:none;padding:2.5cqh 4cqw;font-size:clamp(10px,3.5cqh,14px);color:#6E6E73;border-bottom:1px solid #ECECEF}
+.dbody{flex:1;min-height:0;display:flex}
+.dfiles{width:26%;margin:0;padding:3cqh 2cqw;list-style:none;background:#F7F7F9;font-size:3.5cqh;color:#3A3A3C;overflow-wrap:anywhere}
+.dfiles li{padding:1.4cqh 1cqw;border-radius:4px}
+.dfiles li.on{background:#E4E4E9}
+.dpage{flex:1;min-width:0;padding:4cqh 4cqw;font:3.5cqh/1.6 var(--mono);color:#2C2C2E}
+.dpage h4{font:500 4.5cqh/1.4 var(--mono);margin:0 0 2cqh}
+.dpage h5{font:500 3.5cqh/1.4 var(--mono);color:#6E6E73;margin:2cqh 0 1cqh}
 .cloudmark{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
-.cloudmark .lk{position:relative;width:64px;height:64px;color:var(--ink)}
+.cloudmark .lk{position:relative;width:56px;height:56px;color:var(--ink)}
 .cloudmark .lk svg{width:100%;height:100%}
-.cloudmark .ring{position:absolute;left:50%;top:32px;width:150px;height:150px;margin:-75px 0 0 -75px;border-radius:50%;border:1px solid var(--line);animation:ring2 3.2s ease-out infinite}
-@keyframes ring2{0%{transform:scale(.55);opacity:.9}100%{transform:scale(1.5);opacity:0}}
-.cloudmark b{margin-top:10px;font-size:clamp(26px,2.4vw,34px);font-weight:400;letter-spacing:-.01em}
-.cloudmark small{font-size:14px;color:var(--mute)}
-.tree{margin:22px 0 0;text-align:left;font:14px/1.9 var(--mono);color:var(--ink2);white-space:pre}
-/* Agent: a terminal card beside the caption; the marks never sit on an Apple screen. */
-.pair3{align-items:center;gap:clamp(28px,4vw,72px)}
-.acard{flex:none;width:min(420px,44vw);border-radius:16px;overflow:hidden;background:#1E2523;color:#E9E5DD;box-shadow:0 24px 60px rgba(27,43,44,.18);text-align:left}
-.atitle{position:relative;height:44px;background:#2A3230}
-.an{position:absolute;inset:0;display:flex;align-items:center;gap:9px;padding:0 16px;font-size:13.5px;opacity:0;transform:translateY(5px);transition:opacity .45s ease,transform .45s ease}
-.an.is-on{opacity:1;transform:none}
+.cloudmark .ring{position:absolute;left:50%;top:28px;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:1px solid var(--line);animation:cloud-ring 3.2s ease-out infinite}
+@keyframes cloud-ring{0%{transform:scale(.55);opacity:.9}100%{transform:scale(1.5);opacity:0}}
+.cloudmark b{margin-top:10px;font-size:32px;font-weight:400}
+.cloudmark small{font-size:14px;color:var(--ink2)}
+.tree{margin:20px 0 0;text-align:left;font:14px/1.9 var(--mono);color:var(--ink2);white-space:pre-wrap}
+.r2 .rcap{display:none}
+.pair3{gap:64px;align-items:center}
+.acard{flex:none;width:480px;min-width:0;border-radius:20px;background:#1E2523;color:#E9E5DD;box-shadow:0 16px 40px #1b2b2c12;text-align:left}
+.atitle{position:relative;height:56px;background:#2A3230;border-radius:20px 20px 0 0}
+.an{position:absolute;inset:0;display:flex;align-items:center;gap:12px;padding:0 24px;font-size:15px;opacity:0}
+.an.is-on{opacity:1}
 .an b{font-weight:500}
-.aterm{position:relative;min-height:136px;padding:16px 16px 18px;font:13px/1.8 var(--mono)}
-.aterm p{opacity:0;transition:opacity .4s ease}
-.aterm p+p{color:#A6DDB0}
-.pair3.in .aterm p{opacity:1;transition-delay:calc(.5s + var(--i) * .9s)}
-.caret{display:inline-block;width:7px;height:13px;background:#E9E5DD;vertical-align:-2px;animation:blink 1s steps(1) infinite}
-.astrip{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 22px;max-width:1040px;margin:40px auto 0;font-size:13px;color:#9A9C97}
-.as{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:color .4s}
+.aterm{padding:24px;font-size:15px;line-height:1.7}
+.source-line{padding-bottom:22px;border-bottom:1px solid #43514b}
+.agent-files{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0}
+.agent-files>span{display:flex;align-items:center;gap:8px;background:#303c36;padding:10px;border-radius:8px;font:14px var(--mono)}
+.agent-files i{font-style:normal;color:#b3d6c1}
+.email-result{font-size:14px;color:#b3d6c1}
+.astrip{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:16px 24px;max-width:960px;margin:48px auto 0;font-size:14px;color:var(--ink2)}
+.as{display:inline-flex;align-items:center;gap:9px;text-decoration:none}
 .as i{font-style:normal}
-.as.is-on{color:var(--ink)}
-.amark{flex:none}
-.agent-card h3 .amark{margin-right:8px;vertical-align:-3px}
-.scene .fine{margin:36px 0 0;text-align:center;color:var(--mute);font-size:13.5px}
-@media (max-width:900px){
-.scene{padding-top:84px}
-.r1g{grid-template-columns:1fr;text-align:center}
-.sc-intro .sub{margin:14px auto 0}
-.pair1{--ph:min(200px,46vw)}
-.pair1 .gap{width:24px}
-.echo{width:40px;height:40px}
-.pair2{flex-direction:column;align-items:center;gap:28px;--mw:min(400px,92vw)}
-.pair2 .ipadf{margin:0;width:min(360px,86vw)}
-.pair3{flex-direction:column;gap:20px}
-.acard{width:min(400px,92vw)}
-.rcap.side{text-align:center;max-width:28em}
+.as.is-on{text-decoration:underline;text-underline-offset:6px}
+.amark{flex:none;color:#000}
+.acard .amark{color:#fff}
+.official-mark{position:relative;display:inline-block;vertical-align:middle}
+.official-mark img{position:absolute;inset:0;width:100%;height:100%}
+.mark-white{display:none}
+.acard .mark-black{display:none}.acard .mark-white{display:block}
+.lm-mark{display:inline-flex;background:#000;border-radius:4px;padding:3px;vertical-align:middle}
+.lm-mark img{display:block}
+
+.agent-card h3 .amark{margin-right:10px;vertical-align:-3px}
+.scene .fine{margin:32px 0 0;text-align:center;color:var(--ink2);font-size:14px}
+[data-watch-scene] .echo path,[data-motion] .ring{animation-play-state:paused}
+[data-watch-scene].motion-visible .echo path,[data-motion].motion-visible .ring{animation-play-state:running}
+
+.dpage{position:relative;flex:1;min-height:0;overflow-y:auto;padding:10px 16px;font:14px/1.4 var(--sans);scrollbar-width:thin;scrollbar-color:#c9c9ce transparent;text-align:left}
+.dpage:focus-visible{outline:2px solid #536d65;outline-offset:-3px}
+.dpage h4{font:500 17px/1.4 var(--mono);margin:0 0 6px}
+.dpage h5{font:500 14px/1.4 var(--mono);margin:6px 0 4px;color:#66706b}
+.dpage p{margin:0}
+.dpage ul{list-style:none;margin:0;padding:0}
+.dpage li{margin:0 0 3px}
+.day-sections{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.day-sections section{min-width:0}
+.day-sections li::before{content:"· ";color:#66706b}
+.day-sections .day-todos li::before{content:none}
+.day-todos span{display:inline-block;width:10px;height:10px;border:1px solid #8a938d;border-radius:2px;vertical-align:baseline}
+.day-transcript li{display:flex;gap:8px}
+.day-transcript time{flex:none;color:#66706b;font:14px/1.4 var(--mono)}
+.dbar{display:flex;justify-content:space-between;align-items:center;font:14px/1.4 var(--mono);padding:6px 16px;background:#fafafa}
+@container(max-width:360px){.day-sections{grid-template-columns:1fr;gap:0}.dpage{padding:10px 12px}.dbar{padding:5px 12px}}
+
+/* Outcome cards share their exact prompts with /agents. */
+.outcomes{padding:88px 0;border-top:1px solid var(--line);background:#e9e6df}
+.outcomes-head{max-width:760px;margin-bottom:40px}
+.eyebrow{font-size:14px;color:var(--ink2);margin-bottom:12px}
+.home .outcomes h2,.outcomes h2{font-size:clamp(32px,3.5vw,48px);line-height:1.2;margin:0 0 20px}
+.outcomes-head>p:not(.eyebrow){font-size:17px;line-height:1.7;color:var(--ink2)}
+.outcomes-head .outcomes-tools{margin-top:18px;font-size:14px!important}
+.outcomes-head small{display:block;font-size:14px;color:var(--ink2);margin-top:10px}
+.outcome-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.outcome{min-width:0;display:flex;flex-direction:column;background:var(--card);border:1px solid #fff9;border-radius:24px;padding:28px}
+.outcome header{display:flex;align-items:baseline;gap:14px}
+.case-number{font:14px var(--mono);color:var(--ink2)}
+.outcome h3{font-size:22px;font-weight:400;line-height:1.4;letter-spacing:-.02em}
+.outcome blockquote{margin:24px 0 18px;padding:0 0 0 16px;border-left:2px solid #bcb9b1}
+.outcome time{display:block;font:14px var(--mono);color:var(--ink2);margin-bottom:6px}
+.outcome blockquote p{font-size:19px;line-height:1.6}
+.outcome .agent-action{font-size:15px;line-height:1.8;color:var(--ink2);margin-bottom:20px}
+.deliverable{border:1px solid var(--line);border-radius:14px;padding:20px;background:#fff;min-height:154px;margin-top:auto;display:flex;flex-direction:column;justify-content:center;gap:16px}
+.result-files{display:flex;flex-wrap:wrap;gap:10px}
+.file-chip{display:inline-flex;align-items:center;gap:10px;align-self:flex-start;font:14px var(--mono);color:var(--ink);overflow-wrap:anywhere;max-width:100%}
+.file-chip i{display:grid;place-items:center;font:500 14px var(--sans);font-style:normal;width:32px;height:38px;background:#edf1ed;border:1px solid #dbe3dc;border-radius:4px;color:#436650;flex:none}
+.result-row{display:flex;align-items:flex-start;gap:12px}
+.result-check{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#e9f0e8;color:#436650;flex:none}
+.result-row b{display:block;font-size:16px;font-weight:500;line-height:1.5}
+.result-row div>span,.result-note{display:block;font-size:14px;line-height:1.6;color:var(--ink2);margin-top:4px}
+.pr-preview{display:flex;flex-direction:column;gap:10px}
+.pr-badge{align-self:flex-start;background:#e7f1e9;color:#386246;padding:3px 9px;border-radius:999px;font-size:14px}
+.pr-preview b{font-size:17px;font-weight:500}
+.pr-preview code{font:14px var(--mono);overflow-wrap:anywhere}
+.pr-preview code span{color:var(--mute)}
+.prompt{display:flex;align-items:flex-start;gap:16px;padding-top:20px;margin-top:20px;border-top:1px solid var(--line)}
+.prompt p{min-width:0;flex:1;font-size:14px;line-height:1.8;color:var(--ink2);margin:0}
+.prompt .copy{font-size:14px;line-height:1.5;min-height:44px;min-width:60px;padding:9px 12px;border:1px solid var(--line);border-radius:999px;color:var(--ink);background:transparent}
+.prompt .copy:hover{background:#e9e6df}
+.prompt .copy.done{background:var(--ink);color:var(--paper)}
+.outcomes>.wrap>.pill{margin-top:32px}
+.outcomes.compact{padding:0 0 48px;background:none;border:0}
+.doc .outcomes h2{border:0;padding:0;margin:0 0 16px}
+.compact .outcomes-head{margin-bottom:24px}
+.compact .outcome{padding:20px;border:1px solid var(--line);border-radius:16px}
+.compact .outcome h3{font-size:18px}
+.compact .outcome p{font-size:14px}
+.compact .outcome header{justify-content:flex-start}
+.compact .prompt{margin-top:auto;padding-top:16px;border:0}
+.compact .outcomes-tools,.compact .outcomes-head small{display:none}
+@media(max-width:1100px){.r1g{grid-template-columns:1fr}.sc-intro{max-width:700px}.pair1{margin-top:28px}.pair3{gap:32px}.acard{width:440px}}
+@media(max-width:760px){
+.row{padding:48px 0}.r1{padding-top:8px}.scene{padding-top:20px}
+.sc-intro h1{font-size:36px}.sc-intro .sub{font-size:16px}
+.pair1{--ph:342px;flex-direction:column;gap:48px;margin-top:40px;padding-bottom:0}
+.pair1 .watch{--ww:calc(342px * .5853);margin-bottom:32px}
+.pair1 .iphone{max-width:100%}.pair1 .gap{display:none}
+.rcap{margin-top:28px;font-size:15px}.rcap b{font-size:21px}
+.pair2{flex-direction:column;align-items:center;gap:40px;--mw:min(440px,100%)}
+.pair2 .macf{width:min(440px,100%)}.pair2 .ipadf{width:min(344.872px,78.38%)}
+.pair3{flex-direction:column;gap:28px}.acard{width:100%}.aterm{padding:22px}.atitle .an{padding:0 22px}
+.rcap.side{text-align:center;max-width:30em}
+.astrip{gap:14px 20px;margin-top:32px}.scene .fine{margin-top:24px}
+.outcomes{padding:56px 0}.outcome-grid{grid-template-columns:1fr;gap:18px}
+.outcomes-head{margin-bottom:28px}.outcome{padding:22px}.outcome h3{font-size:21px}
+.outcome blockquote p{font-size:18px}.deliverable{padding:16px;min-height:148px}
+.prompt{gap:12px}.agent-files{gap:8px}.agent-files>span{font-size:14px;padding:8px}
+/* Page copy stays legible; the small type inside device illustrations is their UI at scale. */
+.lang,.sc-intro .pill,.scene .fine,.req-line,footer,.legal,.req div,.feat p,.feat h3,.viz small,.legend,.viz-call li b,.ui-h,.ui-sum,.ui-todo,.viz-agent .q,.viz-agent .a,.agent-card .form,.agent-card .how,.agent-card .pill.go,.copy,.agent-card details summary,.agents-dir .grp,.agents-dir .fine,.cmdline code,.cfg pre,.doc th,.code{font-size:14px}
+.viz-agent .files{grid-template-columns:1fr}.viz-agent ul{border-right:0;border-bottom:1px solid var(--line)}
+.viz-agent .win,.viz-agent pre{font-size:14px}.viz-agent .bar{font-size:14px}.viz-day .ticks span{font-size:14px}
+.feat .watch{--ww:200px}.feat .vis{min-height:330px}
+.req div{grid-template-columns:6em 1fr}
 }
-@media (prefers-reduced-motion:reduce){
-.dpage>*,.aterm p{opacity:1;transform:none;transition:none}
-.reveal{display:none}.echo{opacity:1}.echo path,.cloudmark .ring,.caret{animation:none}
-.an:first-child{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){
+*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
 `;

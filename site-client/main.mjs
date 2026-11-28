@@ -65,84 +65,95 @@ const onScroll = () => document.documentElement.classList.toggle("scrolled", scr
 addEventListener("scroll", onScroll, { passive: true });
 onScroll();
 
-/*
- * Opening scene (src/scene.ts): one flat page. Each part loops while it is in view:
- * record — watch face ↔ recording, the iPhone's Today screen filling in; doc — the day file's lines;
- * agent — the agent name and the lines in the terminal card. Reduced motion: final frames, no loops.
- */
-const REVEAL = ["23.5%", "44%", "61%", "85.7%"];
-const loops = new Map();
-/*
- * The interactive watch. States: idle (face, not recording) → app (recording screen) → face (face, still
- * recording) → app … The demo advances by itself; a tap, a crown press or a tap on the screen takes over, and the
- * demo resumes after 8 s of no input. A hint bubble says what to try next, and a pulse marks the target.
- */
-const record = (el) => {
-  const watch = el.querySelector(".live"), reveal = el.querySelector(".reveal");
+/* The watch is a small, user-controlled demo. Its device artwork never changes. */
+for (const el of document.querySelectorAll("[data-watch-scene]")) {
+  const watch = el.querySelector("[data-watch]");
   const hints = JSON.parse(el.dataset.hints || "[]");
   const hint = el.querySelector("[data-hint]");
-  let pulse = el.querySelector(".pulse");
-  if (!pulse && watch) { pulse = document.createElement("span"); pulse.className = "pulse comp"; watch.appendChild(pulse); }
-  let state = "idle", step = 0, auto = null, resume = null, demo = true;
-  const show = (st) => {
-    state = st;
-    if (!watch) return;
-    watch.dataset.state = st === "app" ? "app" : "face";
-    watch.dataset.rec = st === "idle" ? "0" : "1";
-    el.classList.toggle("talking", st !== "idle");
-    const h = st === "idle" ? [hints[0], "comp"] : st === "app" ? [hints[2], "crown"] : [hints[3], "comp"];
-    if (hint) { hint.textContent = h[0] ?? ""; hint.className = "hint on" + (h[1] === "crown" ? " crown" : ""); }
-    if (pulse) pulse.className = "pulse " + h[1];
+  const face = watch.querySelector(".wface"), app = watch.querySelector(".wapp");
+  let interacted = false;
+  const show = (state, recording) => {
+    watch.dataset.state = state;
+    watch.dataset.rec = recording ? "1" : "0";
+    face.inert = state !== "face";
+    app.inert = state !== "app";
+    face.setAttribute("aria-hidden", String(state !== "face"));
+    app.setAttribute("aria-hidden", String(state !== "app"));
+    el.classList.toggle("talking", recording);
+    hint.textContent = hints[state === "app" ? 1 : recording ? 3 : 0] || "";
   };
-  const progress = () => { if (reveal && state !== "idle") { step = Math.min(3, step + 1); reveal.style.top = REVEAL[step]; } };
-  const next = () => (state === "idle" ? "app" : state === "app" ? "face" : "app");
-  const tick = () => { show(next()); progress(); auto = setTimeout(tick, state === "app" ? 3800 : 3200); };
-  const start = () => { if (!auto) { if (demo) { show("idle"); step = 0; if (reveal) reveal.style.top = REVEAL[0]; } auto = setTimeout(tick, 2400); } };
-  const stop = () => { clearTimeout(auto); auto = null; };
-  const user = (st) => {
-    stop(); clearTimeout(resume); demo = false;
-    show(st); progress();
-    if (hint && state === "app") { setTimeout(() => { if (state === "app") hint.textContent = hints[1] ?? ""; }, 1800); setTimeout(() => { if (state === "app") hint.textContent = hints[2] ?? ""; }, 4200); }
-    resume = setTimeout(() => { demo = false; start(); }, 8000);
-  };
-  const press = () => { watch?.classList.add("press"); setTimeout(() => watch?.classList.remove("press"), 170); };
+  show("face", false);
   el.addEventListener("click", (e) => {
-    const act = e.target.closest?.("[data-act]")?.dataset.act;
-    if (!act) return;
-    if (act === "comp") user("app");
-    else if (act === "crown") { press(); user(state === "app" ? "face" : "app"); }
-    else if (act === "screen") { watch?.classList.remove("marked"); void watch?.offsetWidth; watch?.classList.add("marked"); user("app"); }
+    const button = e.target.closest?.("[data-act]");
+    if (!button) return;
+    const act = button.dataset.act;
+    if (act === "comp") { show("app", true); app.querySelector("button")?.focus({preventScroll:true}); }
+    if (act === "crown") { show("face", watch.dataset.rec === "1"); face.querySelector("button")?.focus({preventScroll:true}); }
+    if (act === "screen") {
+      watch.classList.remove("marked"); void watch.offsetWidth; watch.classList.add("marked");
+      const flag = watch.querySelector(".flag");
+      flag.textContent = flag.dataset.message;
+      setTimeout(() => { watch.classList.remove("marked"); flag.textContent = ""; }, 1300);
+    }
+    if (!interacted) {
+      interacted = true;
+      setTimeout(() => { hint.classList.add("dismissed"); }, reduce ? 0 : 1800);
+    }
   });
-  return { start, stop: () => { stop(); clearTimeout(resume); } };
-};
-const once = (el) => ({ start() { el.classList.add("in"); }, stop() {} });
-const agentLoop = (el, strip) => {
-  const titles = [...el.querySelectorAll(".an")], marks = [...strip.querySelectorAll(".as")];
-  let k = 0, t = null;
-  const show = () => { const id = titles[k % titles.length]?.dataset.agent; titles.forEach((x) => x.classList.toggle("is-on", x.dataset.agent === id)); marks.forEach((x) => x.classList.toggle("is-on", x.dataset.agent === id)); k++; };
-  return { start() { el.classList.add("in"); if (!t) { show(); t = setInterval(show, 1500); } }, stop() { clearInterval(t); t = null; } };
-};
-for (const el of document.querySelectorAll("[data-loop]")) {
-  const kind = el.dataset.loop;
-  loops.set(el, kind === "record" ? record(el) : kind === "agent" ? agentLoop(el, el.closest(".row").querySelector(".astrip")) : once(el));
-}
-if (reduce) {
-  for (const [el, l] of loops) { el.classList.add("in", "talking"); if (el.dataset.loop === "agent") el.querySelector(".an")?.classList.add("is-on"); const r = el.querySelector(".reveal"); if (r) r.style.top = "85.7%"; const w = el.querySelector(".live"); if (w) { w.dataset.state = "app"; w.dataset.rec = "1"; } const h = el.querySelector("[data-hint]"); if (h) { const hs = JSON.parse(el.dataset.hints || "[]"); h.textContent = hs[2] ?? ""; h.className = "hint on crown"; } }
-  // Reduced motion: the watch still responds to taps, without the demo.
-  for (const [el, l] of loops) if (el.dataset.loop === "record") { /* click handlers were attached in record() */ }
-} else if (loops.size) {
-  const io = new IntersectionObserver((es) => es.forEach((e) => { const l = loops.get(e.target); if (l) e.isIntersecting ? l.start() : l.stop(); }), { threshold: 0.25 });
-  loops.forEach((_, el) => io.observe(el));
 }
 
-/* Copy buttons (agents page): copy the command or config, then confirm for a moment. */
+/* Only adjacent agent names and decorative marks loop, while visible. Content is always present. */
+const loops = new Map();
+for (const el of document.querySelectorAll('[data-loop="agent"]')) {
+  const titles = [...el.querySelectorAll(".an")];
+  const strip = el.closest(".row").querySelector(".astrip");
+  let k = 0, timer;
+  const show = () => {
+    const id = titles[k++ % titles.length]?.dataset.agent;
+    titles.forEach((x) => x.classList.toggle("is-on", x.dataset.agent === id));
+    strip.querySelectorAll(".as").forEach((x) => x.classList.toggle("is-on", x.dataset.agent === id));
+  };
+  loops.set(el, { start() { if (!timer && !reduce) timer = setInterval(show, 2600); }, stop() { clearInterval(timer); timer = null; } });
+}
+const sceneIO = new IntersectionObserver((entries) => {
+  entries.forEach((e) => {
+    e.target.classList.toggle("motion-visible", e.isIntersecting && !document.hidden);
+    const loop = loops.get(e.target);
+    if (loop) e.isIntersecting && !document.hidden ? loop.start() : loop.stop();
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll("[data-watch-scene], [data-motion], [data-loop]").forEach((el) => sceneIO.observe(el));
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    loops.forEach((loop) => loop.stop());
+    document.querySelectorAll(".motion-visible").forEach((el) => el.classList.remove("motion-visible"));
+  } else document.querySelectorAll("[data-watch-scene], [data-motion], [data-loop]").forEach((el) => { sceneIO.unobserve(el); sceneIO.observe(el); });
+});
+
+/* Shared prompt, command and configuration copying, including a selected-text fallback. */
 document.addEventListener("click", async (e) => {
   const b = e.target.closest?.("[data-copy]");
   if (!b) return;
-  const label = b.textContent;
-  try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = document.documentElement.lang.startsWith("zh") ? "已复制" : "Copied"; b.classList.add("done"); }
-  catch { b.textContent = "⌘C"; }
-  setTimeout(() => { b.textContent = label; b.classList.remove("done"); }, 1600);
+  const zh = document.documentElement.lang.startsWith("zh");
+  const label = b.textContent, ariaLabel = b.getAttribute("aria-label");
+  let copied = false;
+  try { await navigator.clipboard.writeText(b.dataset.copy); copied = true; }
+  catch {
+    const text = b.parentElement.querySelector("p, code, pre");
+    if (text) {
+      const range = document.createRange(); range.selectNodeContents(text);
+      const selection = getSelection(); selection.removeAllRanges(); selection.addRange(range);
+      try { copied = document.execCommand("copy"); } catch { /* Leave the text selected for manual copy. */ }
+      if (copied) selection.removeAllRanges();
+    }
+  }
+  b.textContent = copied ? (zh ? "已复制" : "Copied") : (zh ? "已选中" : "Selected");
+  b.setAttribute("aria-label", copied ? (zh ? "已复制" : "Copied") : (zh ? "复制失败，文字已选中，请手动复制" : "Copy failed. Text selected; copy it manually."));
+  b.classList.toggle("done", copied);
+  setTimeout(() => {
+    b.textContent = label; b.classList.remove("done");
+    if (ariaLabel) b.setAttribute("aria-label", ariaLabel); else b.removeAttribute("aria-label");
+  }, 1600);
 });
 
 /* Opened from the app (Handoff / AirDrop) as /agents#<id>: land on that card once fonts and layout settle. */

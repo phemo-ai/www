@@ -65,103 +65,64 @@ const onScroll = () => document.documentElement.classList.toggle("scrolled", scr
 addEventListener("scroll", onScroll, { passive: true });
 onScroll();
 
-/* Live watch: pressing the crown goes to the watch face; recording carries on (the complication keeps speaking). */
-const setFace = (fig, on) => { fig.dataset.state = on ? "face" : "app"; };
-const press = (fig) => { fig.classList.add("press"); setTimeout(() => fig.classList.remove("press"), 170); };
-
 /*
- * The data path scene. Steps: press the crown → face; audio token watch → iCloud → iPhone; waveform → text → to-dos;
- * Markdown token iPhone → iCloud Drive → agent; agent acts. Loops while on screen. Token paths are measured from
- * the laid-out nodes, so the same code works for the row (desktop) and the column (phone) layouts.
+ * Opening scene (src/scene.ts). Desktop: scroll position picks a step; CSS dissolves between shots and plays the
+ * screen content. Phones and reduced motion: still panels that fade in. Devices themselves never move.
  */
-const stage = document.querySelector("[data-stage]");
-if (stage) {
-  const chainEl = stage.closest("[data-chain]");
-  const caps = JSON.parse(chainEl.dataset.caps || "[]");
-  const capEl = chainEl.querySelector("[data-cap]");
-  const watchEl = stage.querySelector("[data-watch]");
-  const tok = stage.querySelector(".tok");
-  const nodes = { watch: stage.querySelector(".n-watch"), cloud: stage.querySelector(".n-cloud"), phone: stage.querySelector(".n-phone"), mac: stage.querySelector(".n-mac") };
-  const anchor = { watch: watchEl.querySelector(".scrwrap"), cloud: stage.querySelector(".cloudbox"), phone: stage.querySelector(".phone2"), mac: stage.querySelector(".mac") };
-  const MODES = ["s-wave", "s-text", "s-todo", "s-agent"];
-  let timers = [], anims = [], onScreen = false;
-
-  const at = (ms, fn) => timers.push(setTimeout(fn, ms));
-  const cap = (i) => { if (capEl) capEl.textContent = caps[i] ?? ""; };
-  const on = (...names) => names.forEach((n) => nodes[n].classList.add("on"));
-  const mode = (...m) => stage.classList.add(...m);
-  const pulse = (n) => { nodes[n].classList.remove("pulse"); void nodes[n].offsetWidth; nodes[n].classList.add("pulse"); };
-  const center = (el) => {
-    const r = el.getBoundingClientRect(), s = stage.getBoundingClientRect();
-    return [r.left + r.width / 2 - s.left, r.top + r.height / 2 - s.top];
+const STEPS = [0, 0.07, 0.15, 0.23, 0.31, 0.43, 0.59, 0.75, 0.9];
+const REVEAL = ["23.5%", "23.5%", "44%", "61%", "85.7%"];
+const stageEl = document.querySelector("[data-scene]");
+const sticky = stageEl?.closest(".sc-sticky");
+const rotate = (root, ms) => {
+  const titles = [...root.querySelectorAll(".an")];
+  const strip = [...root.querySelectorAll(".as")];
+  let k = 0, timer = null;
+  const show = () => {
+    const id = titles[k % titles.length]?.dataset.agent;
+    titles.forEach((t) => t.classList.toggle("is-on", t.dataset.agent === id));
+    strip.forEach((t) => t.classList.toggle("is-on", t.dataset.agent === id));
+    k++;
   };
-  // One hop along a gentle arc (up in the row layout, sideways in the column layout).
-  const hop = (from, to, ms) => {
-    const [x0, y0] = center(anchor[from]), [x1, y1] = center(anchor[to]);
-    const row = Math.abs(x1 - x0) > Math.abs(y1 - y0);
-    const cx = (x0 + x1) / 2 + (row ? 0 : 46), cy = (y0 + y1) / 2 - (row ? 56 : 0);
-    const frames = [];
-    for (let k = 0; k <= 16; k++) {
-      const t = k / 16, u = 1 - t;
-      const x = u * u * x0 + 2 * u * t * cx + t * t * x1, y = u * u * y0 + 2 * u * t * cy + t * t * y1;
-      frames.push({ transform: `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(${(0.8 + 0.2 * Math.sin(Math.PI * t)).toFixed(3)})`, opacity: t < 0.08 || t > 0.94 ? 0 : 1 });
-    }
-    const a = tok.animate(frames, { duration: ms, easing: "cubic-bezier(.45,0,.35,1)", fill: "forwards" });
-    anims.push(a);
-    return a.finished.catch(() => {});
+  return { start() { if (!timer) { show(); timer = setInterval(show, ms); } }, stop() { clearInterval(timer); timer = null; } };
+};
+if (stageEl && sticky && getComputedStyle(sticky).display !== "none") {
+  const caps = JSON.parse(stageEl.dataset.caps || "[]");
+  const cap = stageEl.querySelector("[data-cap]");
+  const shots = [...stageEl.querySelectorAll(".shot")];
+  const watch = stageEl.querySelector(".s1 .live");
+  const reveal = stageEl.querySelector(".s1 .reveal");
+  const agents = rotate(stageEl.querySelector(".s4"), 1500);
+  let step = -1;
+  const shotFor = (s) => (s <= 4 ? 0 : s === 5 ? 1 : s === 6 ? 2 : 3);
+  const apply = (s) => {
+    stageEl.dataset.step = String(s);
+    shots.forEach((el, i) => el.classList.toggle("on", i === shotFor(s)));
+    if (watch) watch.dataset.state = s === 1 ? "app" : "face";
+    if (reveal) reveal.style.top = REVEAL[Math.min(s, 4)];
+    if (cap) { cap.classList.add("out"); setTimeout(() => { cap.textContent = caps[s] ?? ""; cap.classList.remove("out"); }, 220); }
+    s >= 7 ? agents.start() : agents.stop();
   };
-  const travel = (path, kind) => {
-    tok.classList.toggle("doc", kind === "doc");
-    let p = Promise.resolve();
-    path.slice(1).forEach((to, k) => {
-      const from = path[k];
-      p = p.then(() => { if (from === "cloud") { on("cloud"); pulse("cloud"); } return hop(from, to, k === 0 ? 1000 : 900); });
-    });
-    return p;
+  const onScroll = () => {
+    const r = sticky.getBoundingClientRect();
+    const p = Math.min(1, Math.max(0, -r.top / Math.max(1, r.height - innerHeight)));
+    let s = 0;
+    STEPS.forEach((t, i) => { if (p >= t) s = i; });
+    if (s !== step) { step = s; apply(s); }
   };
-
-  const reset = () => {
-    timers.forEach(clearTimeout); timers = [];
-    anims.forEach((a) => a.cancel()); anims = [];
-    stage.classList.remove(...MODES);
-    Object.values(nodes).forEach((n) => n.classList.remove("on", "pulse"));
-    setFace(watchEl, false);
-    cap(0);
-  };
-  const play = (fromCrown = false) => {
-    reset();
-    const t0 = fromCrown ? 0 : 2600;
-    at(t0, () => { press(watchEl); setFace(watchEl, true); cap(1); });
-    at(t0 + 1300, () => { cap(2); travel(["watch", "cloud", "phone"], "audio"); });
-    at(t0 + 3400, () => { on("phone"); mode("s-wave"); cap(3); });
-    at(t0 + 5000, () => { mode("s-text"); cap(4); });
-    at(t0 + 7100, () => { mode("s-todo"); cap(5); });
-    at(t0 + 8700, () => { cap(6); travel(["phone", "cloud", "mac"], "doc"); });
-    at(t0 + 10700, () => { on("mac"); mode("s-agent"); cap(7); });
-    at(t0 + 14500, () => cap(8));
-    at(t0 + 18500, () => { if (onScreen) play(); });
-  };
-
-  if (reduce) {
-    Object.values(nodes).forEach((n) => n.classList.add("on"));
-    stage.classList.add("s-text", "s-todo", "s-agent");
-    const toggle = () => { press(watchEl); setFace(watchEl, watchEl.dataset.state !== "face"); };
-    watchEl.querySelector(".crown")?.addEventListener("click", toggle);
-    watchEl.querySelector(".scrwrap")?.addEventListener("click", toggle);
-  } else {
-    new IntersectionObserver(([e]) => {
-      const was = onScreen;
-      onScreen = e.isIntersecting;
-      if (onScreen && !was) play();
-      if (!onScreen) reset();
-    }, { threshold: 0.35 }).observe(stage);
-    const crownPress = () => {
-      if (watchEl.dataset.state === "face") { press(watchEl); reset(); at(6000, () => { if (onScreen) play(); }); }
-      else play(true);
-    };
-    watchEl.querySelector(".crown")?.addEventListener("click", crownPress);
-    watchEl.querySelector(".scrwrap")?.addEventListener("click", crownPress);
-    chainEl.querySelector("[data-replay]")?.addEventListener("click", () => play());
+  let ticking = false;
+  addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(() => { ticking = false; onScroll(); }); } }, { passive: true });
+  addEventListener("resize", onScroll);
+  onScroll();
+}
+const story = document.querySelector(".sc-story");
+if (story && getComputedStyle(story).display !== "none") {
+  const panels = [...story.querySelectorAll(".panel")];
+  if (reduce) panels.forEach((p) => p.classList.add("in"));
+  else {
+    const io2 = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io2.unobserve(e.target); } }), { threshold: 0.2 });
+    panels.forEach((p) => io2.observe(p));
+    const last = panels[panels.length - 1];
+    if (last) rotate(last, 1500).start();
   }
 }
 

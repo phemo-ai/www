@@ -1,6 +1,7 @@
 /** Page content, zh-Hans and en. Bodies are trusted HTML; {{BASE}} is replaced with the site origin at render time. */
 import { agentsDirectory } from "./agents";
-import { CHANGELOG, chain, changelogBody, liveWatch } from "./live";
+import { CHANGELOG, changelogBody, liveWatch } from "./live";
+import { scene } from "./scene";
 export type Lang = "zh" | "en";
 export type PageId = "home" | "privacy" | "terms" | "support" | "agents" | "changelog";
 
@@ -20,9 +21,6 @@ function pic(src: string, alt: string, cls: string, lazy = true) {
  * Screen areas measured on the original PNGs: iPhone 17 Pro 1350×2760, screen 1206×2622 at (72, 69);
  * Apple Watch Series 11 46 mm 560×880, screen 416×496 at (72, 192).
  */
-function iphone(screen: string, alt: string, lazy = true) {
-  return `<figure class="dev iphone">${pic(`/screens/${screen}`, alt, "scr", lazy)}${pic("/bezels/iphone-17-pro-silver", "", "bez", lazy)}</figure>`;
-}
 function watch(screen: string, alt: string, opts: { mark?: string; lazy?: boolean } = {}) {
   const mark = opts.mark ? `<svg class="wmark" data-mark ${opts.mark} data-weight="1.15" viewBox="0 0 120 120" aria-hidden="true"></svg>` : "";
   return `<figure class="dev watch"><div class="scrwrap">${pic(`/screens/${screen}`, alt, "scr", opts.lazy ?? true)}${mark}</div>${pic("/bezels/watch-s11-46-natural", "", "bez", opts.lazy ?? true)}</figure>`;
@@ -31,8 +29,7 @@ function watch(screen: string, alt: string, opts: { mark?: string; lazy?: boolea
 interface Feature { title: string; text: string; visual: string }
 interface HomeCopy {
   title: string; description: string;
-  h1: string; sub: string; soon: string; reqLine: string;
-  heroPhoneAlt: string;
+ 
   featH: string; features: Feature[];
   reqH: string; req: [string, string][];
   faqH: string; faq: [string, string][];
@@ -96,11 +93,6 @@ const HOME: Record<Lang, HomeCopy> = {
   zh: {
     title: "Phemo · Apple Watch 上的全天录音，只留你说过的话",
     description: "戴上就录，表盘照常；只录人声，自动整理成文字、要点和待办，全部存在你自己的 iCloud。",
-    h1: '<span class="nb">Apple Watch</span> 上的全天录音，<br>只留你说过的话。',
-    sub: "戴上就录，表盘照常。转写在你的 iPhone 上完成，文字、要点和待办只存在你自己的 iCloud，你的 agent 随时接手。",
-    soon: "即将上架 App Store",
-    reqLine: "watchOS 26 · iOS 27",
-    heroPhoneAlt: "iPhone 上的 Phemo：今天的总结、要点和带时间的转写",
     featH: "它能做什么",
     features: [
       { title: "一键开始，表盘照常", text: "表盘上点一下 Phemo 就开始录，放下手腕仍是你的表盘。", visual: watch("watch-face-zh", "表盘上的 Phemo 复杂功能，顶部是麦克风使用标志") },
@@ -124,11 +116,6 @@ const HOME: Record<Lang, HomeCopy> = {
   en: {
     title: "Phemo · All-day recording on Apple Watch that keeps only what was said",
     description: "Wear it and it records, with your watch face as usual. Speech only, turned into text, highlights and to-dos — all stored in your own iCloud.",
-    h1: 'All-day recording on <span class="nb">Apple Watch</span> <br>that keeps only what was said.',
-    sub: "Tap once and keep your watch face. Your iPhone transcribes on device; text, highlights and to-dos live only in your own iCloud, ready for your agent.",
-    soon: "Coming to the App Store",
-    reqLine: "watchOS 26 · iOS 27",
-    heroPhoneAlt: "Phemo on iPhone: today's summary, highlights and timed transcript",
     featH: "What it does",
     features: [
       { title: "One tap, your watch face stays", text: "Tap Phemo on your watch face to start; lower your wrist and it's still your face.", visual: watch("watch-face-en", "The Phemo complication on a watch face, with the microphone indicator at the top") },
@@ -153,21 +140,10 @@ const HOME: Record<Lang, HomeCopy> = {
 
 function home(lang: Lang): PageText {
   const c = HOME[lang];
-  const sfx = lang === "zh" ? "zh" : "en";
   return {
     title: c.title,
     description: c.description,
-    body: `<section class="hero"><div class="wrap hero-grid">
-<div class="hero-txt">
-<h1>${c.h1}</h1>
-<p class="sub">${c.sub}</p>
-<div class="actions"><span class="pill">${c.soon}</span></div>
-<p class="req-line">${c.reqLine}</p>
-</div>
-<div class="duo">${liveWatch(lang, { lazy: false })}${iphone(`iphone-today2-${sfx}`, c.heroPhoneAlt, false)}</div>
-</div></section>
-
-${chain(lang)}
+    body: `${scene(lang)}
 
 <section class="features" id="features"><div class="wrap">
 <h2>${c.featH}</h2>

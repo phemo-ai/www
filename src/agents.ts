@@ -5,6 +5,8 @@
  * Cursor https://cursor.com/docs/mcp/install-links, LM Studio https://lmstudio.ai/docs/app/mcp/deeplink,
  * VS Code vscode.dev/redirect/mcp/install, Goose goose://extension, Cherry Studio cherrystudio://mcp/install.
  */
+import { ICONS } from "./icons";
+
 type Lang = "zh" | "en";
 
 const PKG = "@phemo/mcp";
@@ -74,7 +76,7 @@ function card(a: Agent, zh: boolean) {
   const json = showJson
     ? `<details${a.action.kind === "prompt" ? " open" : ""}><summary>${a.config ? esc(L(a.config.where)) : zh ? "配置 JSON" : "Config JSON"}</summary><div class="cfg"><pre>${esc(body)}</pre>${copyBtn(body, zh)}</div></details>`
     : "";
-  return `<section class="agent-card" id="${a.id}"><header><h3>${esc(a.name)}</h3><span class="form">${L(a.form)}</span></header>${primary}${json}</section>`;
+  return `<section class="agent-card" id="${a.id}"><header><h3>${agentMark(a.id, 18)}${esc(a.name)}</h3><span class="form">${L(a.form)}</span></header>${primary}${json}</section>`;
 }
 
 export function agentsDirectory(lang: Lang) {
@@ -93,6 +95,18 @@ export function agentsDirectory(lang: Lang) {
 <section class="agent-card" id="skill"><header><h3>${zh ? "能读网页、能写文件的 agent" : "Agents that read the web and write files"}</h3><span class="form">Skill</span></header><p class="how">${zh ? "把这句话发给它：" : "Send it this:"}</p><div class="cmdline"><code>${esc(prompt)}</code>${copyBtn(prompt, zh)}</div></section>
 <section class="agent-card" id="mcp-json"><header><h3>${zh ? "支持 MCP 的其他工具" : "Other MCP clients"}</h3><span class="form">MCP</span></header><div class="cfg"><pre>${esc(MCP_JSON)}</pre>${copyBtn(MCP_JSON, zh)}</div></section>
 </div>
-<p class="fine">${zh ? "各家工具的设置入口会随版本变化；按钮不起作用时，用卡片里的 JSON 配置。只在网页里运行的 AI 读不到你 Mac 上的文件，可以在 iPhone 上把某一天的 Markdown 分享给它。" : "Settings menus change between versions; if a button doesn't work, use the card's JSON. AI that only runs in a web page can't read files on your Mac — share a day's Markdown to it from your iPhone instead."}</p>
+<p class="fine">${zh ? "工具名称和标志归各自所有者所有，这里只表示 Phemo 可以与它们配合使用。" : "Tool names and marks belong to their owners and are shown only to say Phemo works with them."} ${zh ? "各家工具的设置入口会随版本变化；按钮不起作用时，用卡片里的 JSON 配置。只在网页里运行的 AI 读不到你 Mac 上的文件，可以在 iPhone 上把某一天的 Markdown 分享给它。" : "Settings menus change between versions; if a button doesn't work, use the card's JSON. AI that only runs in a web page can't read files on your Mac — share a day's Markdown to it from your iPhone instead."}</p>
 </div>`;
+}
+
+/** Agent → Simple Icons slug; agents without a published mark show their name only. */
+const MARK: Record<string, string> = {
+  "claude-code": "claude", "claude-desktop": "claude", cursor: "cursor", vscode: "githubcopilot", windsurf: "windsurf",
+  "gemini-cli": "googlegemini", zed: "zedindustries", cline: "cline", "lm-studio": "lmstudio", jetbrains: "jetbrains",
+  codebuddy: "codebuddy", trae: "trae", "kimi-code": "kimi", "qwen-code": "qwen", comate: "baidu",
+};
+export function agentMark(id: string, size = 18) {
+  const slug = MARK[id];
+  const icon = slug ? ICONS[slug] : undefined;
+  return icon ? `<svg class="amark" viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true"><path d="${icon.d}" fill="currentColor"/></svg>` : "";
 }
